@@ -57,8 +57,8 @@ export default function Maincontainer() {
                 <Tab.Screen name={homeName} component={Homescreen} options={{ headerShown: false }} />
                 <Tab.Screen name={cameraName} component={Camera} options={{ headerShown: false }} />
                 <Tab.Screen name={mapsName} component={Maps} options={{ headerShown: false }} />
-                <Tab.Screen name={profilename} component={Profile} />
-                <Tab.Screen name={MoreName} component={More} />
+                <Tab.Screen name={profilename} component={Profile} options={{ headerShown: false }}/>
+                <Tab.Screen name={MoreName} component={More} options={{ headerShown: false }}/>
             </Tab.Navigator>
         </NavigationContainer>
     );

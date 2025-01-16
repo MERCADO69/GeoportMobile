@@ -1,4 +1,4 @@
-import { Poppins_500Medium } from '@expo-google-fonts/poppins';
+import { Poppins_400Regular, Poppins_500Medium } from '@expo-google-fonts/poppins';
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ export default function Morescreen({ navigation }) {
           {/* Add your profile image inside this container later */}
         </View>
         <Text style={styles.Username}>Davy Mercado</Text>
+        <Text style={[styles.Usergmail]}>Mercadodavy32@gmail.com</Text>
         <View style={styles.locationContainer}>
           <Ionicons name="location-sharp" size={20} color="gray" />
           <Text style={styles.locationText}>Malaybalay City, Philippines</Text>
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginTop: 25,
+    marginTop: 80,
   },
   profileContainer: {
     width: 100,
@@ -256,8 +257,16 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   menuSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#666666',
     marginTop: -1.5,
+    fontFamily: 'Poppins_400Regular'
   },
+  Usergmail:{
+    fontFamily: 'Poppins_400Regular',
+    color: '#666666',
+    marginTop: -10,
+    marginBottom: 10,
+
+  }
 });

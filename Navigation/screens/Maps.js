@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Poppins_500Medium',
   },
 });

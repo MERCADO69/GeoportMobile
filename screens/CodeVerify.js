@@ -50,7 +50,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
             style={styles.button}
             onPress={handleSendVerificationCode}
           >
-            <Text style={styles.buttonText}>Send Verification Code</Text>
+            <Text style={styles.buttonText}>Confirm Verification</Text>
           </TouchableOpacity>
         </View>
       </View>

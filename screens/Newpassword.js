@@ -35,12 +35,22 @@ const ForgotPasswordScreen = ({ navigation }) => {
       </View>
       <View style={styles.container}>
         <View style={styles.body}>
-          <Text style={styles.label}>Email Address</Text>
+          <Text style={styles.label}>Create New Password</Text>
           <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color="#888" />
+            <Ionicons name="lock-closed-outline" size={20} color="#888" />
             <TextInput
               style={styles.input}
-              placeholder="Enter your email"
+              placeholder="Your New password"
+              value={email}
+              onChangeText={(text) => setEmail(text)}
+              keyboardType="email-address"
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Ionicons name="lock-closed-outline" size={20} color="#888" />
+            <TextInput
+              style={styles.input}
+              placeholder="Confirm New password"
               value={email}
               onChangeText={(text) => setEmail(text)}
               keyboardType="email-address"
@@ -50,7 +60,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
             style={styles.button}
             onPress={handleSendVerificationCode}
           >
-            <Text style={styles.buttonText}>Send Verification Code</Text>
+            <Text style={styles.buttonText}>Confirm Verification</Text>
           </TouchableOpacity>
         </View>
       </View>

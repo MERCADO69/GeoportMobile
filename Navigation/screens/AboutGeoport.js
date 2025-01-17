@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-  View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView,
-} from 'react-native';
+import {View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView,} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 

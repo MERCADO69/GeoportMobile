@@ -54,7 +54,7 @@ const UpdateEmailPhoneScreen = ({ navigation }) => {
       <View style={styles.formContainer}>
         {/* Current Email Field */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Current Email</Text>
+          <Text style={styles.label}>Current Phone</Text>
           <TextInput
             style={styles.input}
             placeholder="Enter your current Phone"

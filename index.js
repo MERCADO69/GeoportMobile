@@ -1,6 +1,6 @@
 import { registerRootComponent } from 'expo';
 
-import App from './Navigation/Maincontainer';
+import App from './Navigation/screens/History';
 
 
 import Mylogo from './Images/Geo.svg';

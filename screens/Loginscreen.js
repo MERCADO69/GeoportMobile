@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts, Poppins_600SemiBold, Poppins_700Bold, Poppins_400Regular, Poppins_500Medium } from '@expo-google-fonts/poppins';
-
+ 
 // Imported SVG assets
 import Mylogo from '../Images/Geo.svg';  
 import Tagline from '../Images/Sibya.svg';
@@ -11,8 +11,7 @@ import FB from '../Images/facebook.svg';
 import ContinueG from '../Images/continue.svg';
 import Either from '../Images/choices.svg';
 
-
-export default function LoginScreen() {
+export default function LoginScreen({ navigation }) {
   // Load custom fonts using the Expo Google Fonts API
   const [fontsLoaded] = useFonts({
     Poppins_600SemiBold,
@@ -98,14 +97,18 @@ export default function LoginScreen() {
 
       {/* Forgot Password link */}
       <SafeAreaView style={styles.forgotPasswordContainer}>
-        <TouchableOpacity 
-          onPress={() => {
-            Alert.alert("Forgot Password", "Redirecting to Forgot Password page...");
-          }}
-        >
-          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
+      <TouchableOpacity 
+        onPress={() => {
+          // Optionally show an alert first
+          Alert.alert("Forgot Password", "Redirecting to Forgot Password page...");
+
+          // Navigate to the Forgetpass screen
+          navigation.navigate('Forgetpass');
+        }}
+      >
+        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
 
       {/* Status bar settings */}
       <StatusBar style="auto" />

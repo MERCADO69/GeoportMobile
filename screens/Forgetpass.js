@@ -3,7 +3,7 @@ import {View,Text,TextInput,TouchableOpacity,StyleSheet,Alert,SafeAreaView,Activ
 import { Ionicons } from "@expo/vector-icons";
 import {useFonts,Poppins_400Regular,Poppins_500Medium,Poppins_600SemiBold,} from "@expo-google-fonts/poppins";
 
-const ForgotPasswordScreen = ({ navigation }) => {
+const ForgotPasswordScreen = () => {
   const [email, setEmail] = useState("");
 
   // Load fonts

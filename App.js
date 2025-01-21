@@ -1,10 +1,28 @@
 import * as React from 'react';
-import Maincontainer from './Navigation/Maincontainer';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import LoginScreen from './screens/Loginscreen';
+import Forgetpass from './screens/Forgetpass';
+
+const Stack = createStackNavigator();
 
 function App() {
-    return (
-        <Maincontainer />
-    );
+  return (
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ForgetPass"
+          component={Forgetpass}
+          options={{ headerShown: false }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 }
 
 export default App;

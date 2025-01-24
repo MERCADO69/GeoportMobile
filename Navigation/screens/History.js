@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, TextInput,
-} from 'react-native';
+import {View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, TextInput,} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 
@@ -161,21 +159,27 @@ const styles = StyleSheet.create({
   filterContainer: { 
     flexDirection: 'row', 
     justifyContent: 'space-around', 
-    marginHorizontal: 16, 
+    marginHorizontal: 30,
     fontFamily: 'Poppins_400Regular',
+    width: 350,
+
   },
-  filterButton: { 
+ filterButton: { 
     paddingVertical: 8, 
-    paddingHorizontal: 16, 
-    borderRadius: 20, 
-    backgroundColor: '#f1f1f1' 
-  },
+    borderRadius: 30, 
+    backgroundColor: '#f1f1f1',
+    minWidth: 85, // Fixed width for all buttons
+    alignItems: 'center', // Center content horizontally
+    marginRight: 35,
+},
+
   activeFilter: { 
     backgroundColor: '#FF7043' 
   },
   filterText: { 
     fontSize: 14, 
-    color: '#333' 
+    color: '#333',
+
   },
   activeFilterText: { 
     color: '#fff' 

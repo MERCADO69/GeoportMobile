@@ -107,20 +107,7 @@ const SettingsScreen = ({ navigation }) => {
           {/* Preferences Section */}
           <Text style={styles.sectionTitle}>Preferences</Text>
           <View style={styles.section}>
-            <View style={styles.settingItem}>
-              <View style={styles.settingInfo}>
-                <Ionicons name="moon-outline" size={24} color="#FF7F00" />
-                <View style={styles.textContainer}>
-                  <Text style={styles.settingTitle}>Dark Mode</Text>
-                  <Text style={styles.settingDescription}>Enjoy a more comfortable, dimmed display</Text>
-                </View>
-              </View>
-              <Switch
-                value={settings.darkMode}
-                onValueChange={() => toggleSwitch('darkMode')}
-                trackColor={{ false: '#E5E5E5', true: '#FF7F00' }}
-                thumbColor="#FFFFFF"
-              />
+            <View style={styles.settingItem}> 
             </View>
 
             <View style={styles.settingItem}>

@@ -1,7 +1,9 @@
 import * as React from 'react';
+import { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import useLiveLocation from "../Functions/getCurrentLocation";
 
 
 // Screens
@@ -10,6 +12,7 @@ import Camera from './screens/Camera';
 import Maps from './screens/Maps';
 import Profile from './screens/Profile';
 import More from './screens/More';
+import { Alert } from 'react-native';
 
 // Screen names
 const homeName = 'Home';
@@ -21,6 +24,18 @@ const MoreName = 'More';
 const Tab = createBottomTabNavigator();
 
 export default function Maincontainer() {
+
+    const currentLocation = useLiveLocation(); 
+
+    useEffect(() => {
+        if (currentLocation) {
+            console.log("Current Location:", currentLocation);
+             }
+    }, [currentLocation]);
+
+    
+
+
     return (
         <NavigationContainer>
             <Tab.Navigator initialRouteName={homeName}

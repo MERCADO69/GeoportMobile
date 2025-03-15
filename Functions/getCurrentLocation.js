@@ -22,7 +22,6 @@ export default function useLiveLocation() {
                 },
                 (newLocation) => {
                     setLocation(newLocation.coords);
-                    console.log("Updated Location:", newLocation.coords);
                 }
             );
         })();

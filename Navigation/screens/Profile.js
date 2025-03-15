@@ -4,21 +4,37 @@ import  { useState,useEffect  } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import GetUserData from "../../Functions/getUserData";
+import { auth } from "../../firebaseConfig";
+import GetReverseLocation from "../../Functions/reverseLocationLookup"
+import useLiveLocation from '../../Functions/getCurrentLocation';
 
 export default function Morescreen({ navigation }) {
-
+   const user = auth.currentUser;
    const [data, setUserData] = useState({});
-    
+   const location = useLiveLocation();
+   const [address,setAddress] = useState('')
+   
     useEffect(()=>{
       async function fetchedData(){
         const fetch = await GetUserData()
         if(fetch){
-          console.log('homescreen fetched data ',fetch.data)
           setUserData(fetch.data)
         }
       }
       fetchedData()
     },[])
+
+  
+    useEffect(()=>{
+     async function reverse() {
+      if(location){
+        const location_data = await GetReverseLocation(location.latitude,location.longitude)
+        setAddress(location_data);
+      }
+     }
+     reverse()
+    },[location])
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -30,7 +46,7 @@ export default function Morescreen({ navigation }) {
         <Text style={[styles.Usergmail]}>{data.email || 'Loading ...'}</Text>
         <View style={styles.locationContainer}>
           <Ionicons name="location-sharp" size={20} color="gray" />
-          <Text style={styles.locationText}>Malaybalay City, Philippines</Text>
+          <Text style={styles.locationText}>{address.city + ', '+ address.region + ', ' + address.country || 'Fetching location'}</Text>
         </View>
       </View>
 
@@ -96,7 +112,7 @@ export default function Morescreen({ navigation }) {
             <Ionicons name="calendar-outline" size={24} color="#FA812F" />
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuTitle}>Member Since</Text>
-              <Text style={styles.menuSubtitle}>March 8, 2024</Text>
+              <Text style={styles.menuSubtitle}>{user.metadata.creationTime || 'Not yet member'}</Text>
             </View>
           </View>
         </TouchableOpacity>

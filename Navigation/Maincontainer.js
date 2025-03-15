@@ -28,17 +28,11 @@ export default function Maincontainer() {
     const currentLocation = useLiveLocation(); 
     const [data,setData] = useState('')
 
-    useEffect(() => {
-        if (currentLocation) {
-            console.log("Current Location:", currentLocation);
-             }
-    }, [currentLocation]);
 
   
         useEffect(()=>{
              async function getdata() {
                 const fetchedData = await GetUserData();
-                console.log('data fetched from MainContainer is ')
                 setData(fetchedData);
             }
             getdata()

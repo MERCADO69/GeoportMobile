@@ -5,6 +5,9 @@ import { View, Text, StyleSheet, Alert, TouchableOpacity, SafeAreaView, TextInpu
 import { useFonts } from '@expo-google-fonts/poppins';
 import SearchIcon from '../../Images/search.svg'; // Make sure the path is correct
 import GetUserData from "../../Functions/getUserData";
+import GetReverseLocation from "../../Functions/reverseLocationLookup"
+import useLiveLocation from '../../Functions/getCurrentLocation';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Homescreen() {
   const [fontsLoaded] = useFonts({
@@ -13,8 +16,11 @@ export default function Homescreen() {
     Poppins_400Regular,
     Poppins_500Medium,
   });
-  const [searchText, setSearchText] = useState('');
-  const [data, setUserData] = useState({});
+     const [searchText, setSearchText] = useState('');
+     const [data, setUserData] = useState({});
+     const location = useLiveLocation();
+     const [address,setAddress] = useState('')
+     const navigation = useNavigation();
   
   useEffect(()=>{
     async function fetchedData(){
@@ -25,6 +31,16 @@ export default function Homescreen() {
     }
     fetchedData()
   },[])
+  
+   useEffect(()=>{
+       async function reverse() {
+        if(location){
+          const location_data = await GetReverseLocation(location.latitude,location.longitude)
+          setAddress(location_data);
+        }
+       }
+       reverse()
+      },[location])
   
 
   if (!fontsLoaded) {
@@ -37,8 +53,8 @@ export default function Homescreen() {
       <View style={styles.topBox} />
 
     <SafeAreaView>
-      <Text style={[styles.Welcomeuser]}>Welcome back!</Text>
-      <Text style={[styles.Welcomelocation]}>San Jose, Malaybalay City</Text>
+      <Text style={[styles.Welcomeuser]}>Welcome back {data.name}!</Text>
+      <Text style={[styles.Welcomelocation]}>{address.barangay + " " + address.city }</Text>
       <Ionicons name="location-outline" size={20} color="#fff" style={styles.locationIcon} />
     </SafeAreaView>
 
@@ -114,7 +130,7 @@ export default function Homescreen() {
       </View>
 
       {/* New Report Button with Icon */}
-      <TouchableOpacity style={styles.Quickbutton} onPress={() => Alert.alert('New Report Button Pressed')}>
+      <TouchableOpacity style={styles.Quickbutton} onPress={() => navigation.navigate('Camera')}>
         <View style={styles.buttonContent}>
           <Ionicons name="camera" size={40} color="#fff" style={styles.icon} />
           <Text style={styles.QuickbuttonText}>New Report</Text>

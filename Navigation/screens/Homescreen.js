@@ -20,7 +20,6 @@ export default function Homescreen() {
     async function fetchedData(){
       const fetch = await GetUserData()
       if(fetch){
-        console.log('homescreen fetched data ',fetch.data)
         setUserData(fetch.data)
       }
     }

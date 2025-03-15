@@ -25,8 +25,6 @@ export default async function GetUserData() {
         }catch(error){
             console.error(error);
         }
-
-
 }
 
 

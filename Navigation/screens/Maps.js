@@ -1,25 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, Text, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, Text } from 'react-native';
 import MapView, { UrlTile, Marker } from 'react-native-maps';
 import SearchIcon from '../../Images/search.svg';
 import useLiveLocation from '../../Functions/getCurrentLocation';
+import fetchReports from "../../Functions/fetchReports";
 
 export default function MapsScreen() {
+  const mapRef = useRef(null);  // Reference to the MapView
   const [isSmartTraveling, setIsSmartTraveling] = useState(false);
   const [searchText, setSearchText] = useState('');
-  
-  const location = useLiveLocation();
-  const [region, setRegion] = useState({
-    latitude: 8.1479, // Default to Malaybalay
-    longitude: 125.1277,
-    latitudeDelta: 0.05,
-    longitudeDelta: 0.05,
-  });
+  const [reportData, setReportData] = useState([]);
+  const location = useLiveLocation(); 
 
-  // Update region when location updates
+  const [initialRegion, setInitialRegion] = useState(null);
+
+  // Set initial region only ONCE when location is available
   useEffect(() => {
-    if (location) {
-      setRegion({
+    if (location && !initialRegion) {
+      setInitialRegion({
         latitude: location.latitude,
         longitude: location.longitude,
         latitudeDelta: 0.05,
@@ -28,9 +26,10 @@ export default function MapsScreen() {
     }
   }, [location]);
 
-  const toggleSmartRerouting = () => {
-    setIsSmartTraveling(!isSmartTraveling);
-  };
+  // Fetch reports but DO NOT reset map position
+  useEffect(() => {
+    fetchReports(setReportData);
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -49,23 +48,40 @@ export default function MapsScreen() {
       </View>
 
       {/* OpenStreetMap Integration */}
-      <MapView style={styles.map} region={region}>
-        {/* Use OpenStreetMap tiles */}
-        <UrlTile 
-          urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maximumZ={19} 
-        />
-        {/* Example Marker */}
-        <Marker coordinate={region} title="Your Location" />
-      </MapView>
+      {initialRegion && (
+        <MapView
+          ref={mapRef}  // Assign ref to the MapView
+          style={styles.map}
+          initialRegion={initialRegion|| {
+            latitude: 7.9266, 
+            longitude: 125.0876, 
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          }}
+        >
+          <UrlTile urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png" maximumZ={19} />
 
-      {/* Status Message */}
-      {isSmartTraveling && (
-        <Text style={styles.statusMessage}>You are now smart traveling</Text>
+          {/* Display Reports */}
+          {reportData.map((report, index) => (
+            <Marker
+              key={index}
+              coordinate={{
+                latitude: report.latitude,
+                longitude: report.longitude,
+              }}
+              title={report.type}
+              description={report.details}
+              pinColor={report.type === 'collision' ? 'blue' : 'green'}
+            />
+          ))}
+        </MapView>
       )}
 
+      {/* Status Message */}
+      {isSmartTraveling && <Text style={styles.statusMessage}>You are now smart traveling</Text>}
+
       {/* Button */}
-      <TouchableOpacity style={styles.button} onPress={toggleSmartRerouting}>
+      <TouchableOpacity style={styles.button} onPress={() => setIsSmartTraveling(!isSmartTraveling)}>
         <Text style={styles.buttonText}>
           {isSmartTraveling ? 'Disable Smart Rerouting' : 'Enable Smart Rerouting'}
         </Text>
@@ -75,10 +91,7 @@ export default function MapsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -87,31 +100,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     margin: 10,
-    marginTop: 40,
     backgroundColor: '#f9f9f9',
   },
-  iconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    height: 50,
-    fontSize: 14,
-    color: '#000',
-  },
-  map: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  statusMessage: {
-    color: 'green',
-    fontSize: 14,
-    marginTop: 5,
-    textAlign: 'center',
-  },
+  iconContainer: { justifyContent: 'center', alignItems: 'center', marginRight: 10 },
+  searchInput: { flex: 1, height: 50, fontSize: 14, color: '#000' },
+  map: { flex: 1, width: '100%', height: '100%' },
+  statusMessage: { color: 'green', fontSize: 14, marginTop: 5, textAlign: 'center' },
   button: {
     backgroundColor: '#FA812F',
     borderRadius: 10,
@@ -123,8 +117,5 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignItems: 'center',
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
+  buttonText: { color: '#fff', fontSize: 16 },
 });

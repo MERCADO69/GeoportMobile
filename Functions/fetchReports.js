@@ -1,37 +1,46 @@
-import { FETCH_REPORT,SERVER_PORT,SERVER_IP } from '@env'
+import { FETCH_REPORT, SERVER_PORT, SERVER_IP } from '@env'
 import { auth } from '../firebaseConfig';    
 
-export default async function fetchReports() {
-    try{
-        const user = auth.currentUser;
-        if(!user){
-            throw new Error('User not logged in');
-        }
+let socket = null;
 
-        let id = user.uid;
+export default async function fetchReports(setReportData) {
+    const user = auth.currentUser;
+    if (!user) {
+        console.error('User not logged in');
+        return;
+    }
+
+    try {
         let token = await user.getIdToken();
+        const url = `ws://${SERVER_IP}:${SERVER_PORT}/${FETCH_REPORT}?token=${token}`;
 
-         const url = `ws://${SERVER_IP}:${SERVER_PORT}/${FETCH_REPORT}?token=${token}`;
-         console.log(url);
-         const socket = new WebSocket(url);
-       
-         socket.onopen = () => {
-            console.log("WebSocket Connected!");
-        };
+        if (!socket || socket.readyState === WebSocket.CLOSED) {
+            socket = new WebSocket(url);
+            console.log('WebSocket Connecting to:', url);
 
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log("New Report Data:", data);
-        };
-        socket.onerror = (error) => {
-            console.error("WebSocket Error:", error);
-        };
-        socket.onclose = () => {
-            console.log("WebSocket Disconnected!");
-        };
-        return socket;
+            socket.onopen = () => {
+                console.log("WebSocket Connected!");
+            };
 
-    }catch(error){
-        console.error(error);
+            socket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    setReportData(data);  // ✅ Updates the state in MapsScreen
+                } catch (error) {
+                    console.error("Error parsing WebSocket data:", error);
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.error("WebSocket Error:", error);
+            };
+
+            socket.onclose = () => {
+                console.log("WebSocket Disconnected! Reconnecting...");
+                setTimeout(() => fetchReports(setReportData), 5000);  // Auto-reconnect
+            };
+        }
+    } catch (error) {
+        console.error("Error in fetchReports:", error);
     }
 }

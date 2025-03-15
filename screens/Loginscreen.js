@@ -1,9 +1,16 @@
 import React, { useState } from "react";
+import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts, Poppins_600SemiBold, Poppins_700Bold, Poppins_400Regular, Poppins_500Medium } from '@expo-google-fonts/poppins';
- 
+
+
+//functions
+import loginFunction from '../Functions/loginFunction';
+import { useGoogleAuth } from '../Functions/continueWithGoogle';
+
+
 // Imported SVG assets
 import Mylogo from '../Images/Geo.svg';  
 import Tagline from '../Images/Sibya.svg';
@@ -12,7 +19,8 @@ import ContinueG from '../Images/continue.svg';
 import Either from '../Images/choices.svg';
 
 export default function LoginScreen({ navigation }) {
-  // Load custom fonts using the Expo Google Fonts API
+  const { promptAsync } = useGoogleAuth();
+  
   const [fontsLoaded] = useFonts({
     Poppins_600SemiBold,
     Poppins_700Bold,
@@ -26,13 +34,51 @@ export default function LoginScreen({ navigation }) {
     password: ''
   });
 
-  // If fonts are not loaded, show a loading message
-  if (!fontsLoaded) {
-    return <Text>Loading...</Text>;
+  const  handleLogin = async () => {
+    if (!form.email || !form.password) {
+      Alert.alert('Missing Credentials', 'Email and password are required.');
+      return;
   }
 
+  if (!isValidEmail(form.email)) {
+    Alert.alert('Invalid Email', 'Please enter a valid email address.');
+    return;
+  }
+
+  if(form.password.length < 6) {
+    Alert.alert('Invalid Password', 'Password must be at least 6 characters long.');
+    return
+  }
+
+
+  try {
+    const tryToLogin =  await loginFunction(form.email, form.password);
+
+    if(tryToLogin) {
+      navigation.navigate('homepage');
+    }
+    else{
+      Alert.alert('Error', 'Invalid Credentials');
+      return;
+    }}catch (error) {
+      Alert.alert('Error', 'Invalid Credentials');
+      return;
+    }
+  } 
+
+const isValidEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+
+
   return (
+
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
     <SafeAreaView style={styles.container}>
+      
       {/* Logo and tagline display */}
       <Mylogo width={300} height={150} />
       <Tagline width={200} height={60} style={{ marginBottom: 40 }}/>
@@ -69,18 +115,11 @@ export default function LoginScreen({ navigation }) {
 
         {/* Log In button */}
         <SafeAreaView style={[styles.FormAction, { marginTop: 25 }]}>
-          <TouchableOpacity
-            style={styles.Btn}
-            onPress={() => {
-              Alert.alert(
-                "Success", 
-                "Successfully logged in ka!", 
-                [{ text: "OK", onPress: () => console.log("OK Pressed") }]
-              );
-            }}
-          >
+         
+          <TouchableOpacity  style={styles.Btn} onPress={() => handleLogin()} >
             <Text style={styles.Btntxt}>Log In</Text>
           </TouchableOpacity>
+
         </SafeAreaView>
       </SafeAreaView>
 
@@ -92,27 +131,21 @@ export default function LoginScreen({ navigation }) {
       {/* Facebook and Google buttons */}
       <SafeAreaView style={[styles.fbContainerGoogle]}>
         <FB width={38} height={300} />
-        <ContinueG width={38} height={300} />
+        <ContinueG width={38} height={300} onPress={()=> promptAsync()}/>
       </SafeAreaView>
 
       {/* Forgot Password link */}
       <SafeAreaView style={styles.forgotPasswordContainer}>
-      <TouchableOpacity 
-        onPress={() => {
-          // Optionally show an alert first
-          Alert.alert("Forgot Password", "Redirecting to Forgot Password page...");
-
-          // Navigate to the Forgetpass screen
-          navigation.navigate('Forgetpass');
-        }}
-      >
+      <TouchableOpacity  onPress={() => { navigation.navigate('Forgetpass'); }}>
         <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
       </TouchableOpacity>
-    </SafeAreaView>
+      </SafeAreaView>
 
       {/* Status bar settings */}
       <StatusBar style="auto" />
     </SafeAreaView>
+    </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -130,12 +163,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between", 
     alignItems: "center", 
     width: "25%", 
-    marginBottom: 10,
   },
   eithercontainer: {
-    position: "absolute", 
+    position: "absolute",
+    bottom: -200, 
     zIndex: -1, 
-  },
+    alignSelf: "center",
+  }
+  ,
   Inputlabel: {
     fontFamily: "Poppins_500Medium",
     paddingTop: 15,
@@ -173,7 +208,7 @@ const styles = StyleSheet.create({
   },
   forgotPasswordContainer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 100,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -183,7 +218,7 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_500Medium",
     color: '#FA812F', 
     fontSize: 12,
-    textDecorationLine: 'underline',
+    textDecorationLine: 'none',
     textAlign: 'center',
   }
 });

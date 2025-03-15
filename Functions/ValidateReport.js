@@ -1,19 +1,17 @@
 import axios from "axios";
-import { VALIDATE_IMAGE_ROUTE } from '@env'
+import { VALIDATE_IMAGE_ENDPOINT,SERVER_PORT,SERVER_IP } from '@env'
 
 export default async function ValidateReport(reportImage) {
     try {
+        const url = `http://${SERVER_IP}:${SERVER_PORT}/${VALIDATE_IMAGE_ENDPOINT}`;
         const formData = new FormData();
         formData.append("image", {
             uri: reportImage,
             name: "image.jpg",
             type: "image/jpeg"
         });
-
-        const response = await axios.post(
-            VALIDATE_IMAGE_ROUTE,
-            formData,
-            {
+                
+        const response = await axios.post(url,formData,{
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },

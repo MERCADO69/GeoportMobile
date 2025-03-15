@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import  { useState,useEffect  } from 'react';
 import { Ionicons } from 'react-native-vector-icons';
 import { Poppins_500Medium, Poppins_700Bold, Poppins_600SemiBold, Poppins_400Regular } from '@expo-google-fonts/poppins';
 import { View, Text, StyleSheet, Alert, TouchableOpacity, SafeAreaView, TextInput, ScrollView } from 'react-native';
 import { useFonts } from '@expo-google-fonts/poppins';
 import SearchIcon from '../../Images/search.svg'; // Make sure the path is correct
-
+import GetUserData from "../../Functions/getUserData";
 
 export default function Homescreen() {
   const [fontsLoaded] = useFonts({
@@ -13,8 +13,20 @@ export default function Homescreen() {
     Poppins_400Regular,
     Poppins_500Medium,
   });
-
   const [searchText, setSearchText] = useState('');
+  const [data, setUserData] = useState({});
+  
+  useEffect(()=>{
+    async function fetchedData(){
+      const fetch = await GetUserData()
+      if(fetch){
+        console.log('homescreen fetched data ',fetch.data)
+        setUserData(fetch.data)
+      }
+    }
+    fetchedData()
+  },[])
+  
 
   if (!fontsLoaded) {
     return <Text>Loading...</Text>;
@@ -26,7 +38,7 @@ export default function Homescreen() {
       <View style={styles.topBox} />
 
     <SafeAreaView>
-      <Text style={[styles.Welcomeuser]}>Welcome back user!</Text>
+      <Text style={[styles.Welcomeuser]}>Welcome back!</Text>
       <Text style={[styles.Welcomelocation]}>San Jose, Malaybalay City</Text>
       <Ionicons name="location-outline" size={20} color="#fff" style={styles.locationIcon} />
     </SafeAreaView>

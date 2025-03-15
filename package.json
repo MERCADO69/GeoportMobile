@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@expo-google-fonts/poppins": "^0.2.3",
+    "@react-native-async-storage/async-storage": "^1.24.0",
+    "@react-native-firebase/auth": "^21.12.0",
+    "@react-native-google-signin/google-signin": "^13.2.0",
     "@react-native-masked-view/masked-view": "^0.3.2",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.15",
@@ -18,11 +21,14 @@
     "@react-navigation/stack": "^7.1.2",
     "axios": "^1.8.2",
     "expo": "~52.0.37",
+    "expo-auth-session": "~6.0.3",
     "expo-camera": "~16.0.17",
     "expo-font": "~13.0.3",
     "expo-image-picker": "~16.0.6",
     "expo-location": "~18.0.7",
+    "expo-random": "^14.0.1",
     "expo-status-bar": "~2.0.1",
+    "firebase": "^11.4.0",
     "onnxruntime-react-native": "^1.21.0",
     "react": "18.3.1",
     "react-native": "0.76.7",
@@ -35,7 +41,8 @@
     "react-native-screens": "~4.4.0",
     "react-native-svg": "15.8.0",
     "react-native-vector-icons": "^10.2.0",
-    "react-native-vision-camera": "^4.6.4"
+    "react-native-vision-camera": "^4.6.4",
+    "undefined": "expo-auth-session/providers/google"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

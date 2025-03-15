@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { useEffect } from 'react';
+import { useEffect,useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useLiveLocation from "../Functions/getCurrentLocation";
-
+import GetUserData from "../Functions/getUserData";
 
 // Screens
 import Homescreen from './screens/Homescreen';
@@ -26,6 +26,7 @@ const Tab = createBottomTabNavigator();
 export default function Maincontainer() {
 
     const currentLocation = useLiveLocation(); 
+    const [data,setData] = useState('')
 
     useEffect(() => {
         if (currentLocation) {
@@ -33,11 +34,20 @@ export default function Maincontainer() {
              }
     }, [currentLocation]);
 
+  
+        useEffect(()=>{
+             async function getdata() {
+                const fetchedData = await GetUserData();
+                console.log('data fetched from MainContainer is ')
+                setData(fetchedData);
+            }
+            getdata()
+        },[])
+    
     
 
-
     return (
-        <NavigationContainer>
+   
             <Tab.Navigator initialRouteName={homeName}
                 screenOptions={({ route }) => ({
                     tabBarIcon: ({ focused, color, size }) => {
@@ -68,7 +78,7 @@ export default function Maincontainer() {
                     tabBarStyle: { padding: 10, height: 60 },
                 })}
             >
-                <Tab.Screen name={homeName} component={Homescreen} options={{ headerShown: false }} />
+                <Tab.Screen name={homeName} component={Homescreen} options={{ headerShown: false }} initialParams={{ user_data: data }}/>
                 <Tab.Screen name={cameraName} component={Camera} options={{ headerShown: false }} />
                 <Tab.Screen name={mapsName} component={Maps} options={{ headerShown: false }} />
                 <Tab.Screen name={profilename} component={Profile} options={{ headerShown: false }}/>
@@ -76,11 +86,5 @@ export default function Maincontainer() {
             </Tab.Navigator>
 
                     
-
-
-
-
-
-        </NavigationContainer>
     );
 }

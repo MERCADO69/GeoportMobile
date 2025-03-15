@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "952130231721",
+    "firebase_url": "https://geoport-malaybalay-default-rtdb.firebaseio.com",
+    "project_id": "geoport-malaybalay",
+    "storage_bucket": "geoport-malaybalay.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:952130231721:android:05df660e02d4e5dfd878b8",
+        "android_client_info": {
+          "package_name": "com.anonymous.GeoportMalaybalay"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "952130231721-vr3cnnh4qs5b43j45drkg91qerf68a3m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBxXZiglJZiXvrsvkAslmo0g4GZ-VFo0g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "952130231721-vr3cnnh4qs5b43j45drkg91qerf68a3m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

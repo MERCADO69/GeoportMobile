@@ -1,17 +1,33 @@
 import { Poppins_400Regular, Poppins_500Medium } from '@expo-google-fonts/poppins';
 import React from 'react';
+import  { useState,useEffect  } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import GetUserData from "../../Functions/getUserData";
 
 export default function Morescreen({ navigation }) {
+
+   const [data, setUserData] = useState({});
+    
+    useEffect(()=>{
+      async function fetchedData(){
+        const fetch = await GetUserData()
+        if(fetch){
+          console.log('homescreen fetched data ',fetch.data)
+          setUserData(fetch.data)
+        }
+      }
+      fetchedData()
+    },[])
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.profileContainer}>
           {/* Add your profile image inside this container later */}
         </View>
-        <Text style={styles.Username}>Davy Mercado</Text>
-        <Text style={[styles.Usergmail]}>Mercadodavy32@gmail.com</Text>
+        <Text style={styles.Username}>{data.name || 'Loading ...'}</Text>
+        <Text style={[styles.Usergmail]}>{data.email || 'Loading ...'}</Text>
         <View style={styles.locationContainer}>
           <Ionicons name="location-sharp" size={20} color="gray" />
           <Text style={styles.locationText}>Malaybalay City, Philippines</Text>

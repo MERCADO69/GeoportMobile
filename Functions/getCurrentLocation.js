@@ -16,9 +16,9 @@ export default function useLiveLocation() {
 
             subscription = await Location.watchPositionAsync(
                 {
-                    accuracy: Location.Accuracy.Highest, // High precision
-                    timeInterval: 1000, // Update every 1 second
-                    distanceInterval: 1, // Update when user moves 1 meter
+                    accuracy: Location.Accuracy.Highest,
+                    timeInterval: 1000,
+                    distanceInterval: 1,
                 },
                 (newLocation) => {
                     setLocation(newLocation.coords);
@@ -28,7 +28,7 @@ export default function useLiveLocation() {
 
         return () => {
             if (subscription) {
-                subscription.remove(); // Stop tracking on unmount
+                subscription.remove(); 
             }
         };
     }, []);

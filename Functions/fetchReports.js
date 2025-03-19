@@ -16,8 +16,7 @@ export default async function fetchReports(setReportData) {
 
         if (!socket || socket.readyState === WebSocket.CLOSED) {
             socket = new WebSocket(url);
-            console.log('WebSocket Connecting to:', url);
-
+        
             socket.onopen = () => {
                 console.log("WebSocket Connected!");
             };

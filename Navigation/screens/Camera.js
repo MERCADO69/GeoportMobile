@@ -4,11 +4,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import ValidateReport from "../../Functions/ValidateReport";
+import SuccessModal from "../modals/success"
+import StoreReportToDatabase from  "../../Functions/storeReportToDatabase"
+import uploadToCloudinary from "../../Functions/cloudinaryUploader"
+import useLiveLocation from "../../Functions/getCurrentLocation";
 
 export default function Camera() {
   const [flashOn, setFlashOn] = useState(false);
   const [photoUri, setPhotoUri] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [reportMessage,setReportMessage] = useState('')
+  const [modalStatus, setModalStatus] = useState("validated");
+  const loc = useLiveLocation()
 
   // Open Camera and Capture Image
   const handleCameraPress = async () => {
@@ -20,39 +28,80 @@ export default function Camera() {
 
     let result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
-      aspect: [1, 1], // Square photo
+      aspect: [1, 1], 
       quality: 1,
     });
 
     if (!result.canceled) {
       setPhotoUri(result.assets[0].uri);
-      await processImage(result.assets[0].uri); // Process the image
+      await processImage(result.assets[0].uri); 
     }
   };
 
   useEffect(() => {
     if (photoUri) {
       (async () => {
-        setLoading(true); // ✅ Start loading
+        setLoading(true);
         try {
           const response = await ValidateReport(photoUri);
           if (response.success) {
-            Alert.alert("Image recognized", response.reportType);
-            setPhotoUri(null);
+            setReportMessage("Report Successfully Validated as "+response.reportType +".")
+            setModalStatus('validated')
+            setModalVisible(true)
+            const report_type = response.reportType;
+            setTimeout(async () => {
+              await submitReport(report_type);
+            }, 3000);
           } else {
             setPhotoUri(null);
             Alert.alert("Invalid Report","Image not recognized as road collision or road defects.");
           }
         } catch (error) {
-          console.error("Upload Error:", error);
-          Alert.alert("Error", "Failed to upload image.");
+            setReportMessage("Failed to upload image. "+ error)
+            setModalStatus('error')
+            setModalVisible(true)
         } finally {
-          setLoading(false); // ✅ Stop loading
+          setLoading(false); 
         }
       })();
     }
   }, [photoUri]);
   
+
+
+  async function submitReport(report_type) {
+    try {
+      setModalStatus('processing');
+      const uploadImage = await uploadToCloudinary(photoUri, report_type);
+      
+      if (!uploadImage) {
+        setReportMessage('Something went wrong. Unable to upload image to image server');
+        setModalStatus('error');
+        return; 
+      }
+  
+      const imageurl = uploadImage;
+      console.log('Trying to save to database...');
+    
+      console.log("the location is ",loc)
+      const store = await StoreReportToDatabase(imageurl, report_type,loc);
+      console.log("submitReport function executed");
+      if (!store.success) {
+        console.log('Unable to upload to database');
+        setReportMessage('Something went wrong. Unable to process request');
+        setModalStatus('error');
+        return; 
+      }
+  
+      setModalStatus('success');
+      setPhotoUri(null);
+    } catch (error) {
+      setReportMessage('An error occurred: ' + error.message);
+      setModalStatus('error');
+    }
+  }
+  
+
 
   
   return (
@@ -83,7 +132,7 @@ export default function Camera() {
         <Icon name="camera" size={40} color="white" />
       </TouchableOpacity>
 
-     
+      <SuccessModal isVisible={isModalVisible} status={modalStatus} text={reportMessage} onClose={() => setModalVisible(false)}/>
     </SafeAreaView>
   );
 }

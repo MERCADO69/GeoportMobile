@@ -26,7 +26,6 @@ export default function MapsScreen() {
     }
   }, [location]);
 
-  // Fetch reports but DO NOT reset map position
   useEffect(() => {
     fetchReports(setReportData);
   }, []);
@@ -66,14 +65,15 @@ export default function MapsScreen() {
             <Marker
               key={index}
               coordinate={{
-                latitude: report.latitude,
-                longitude: report.longitude,
+                latitude: parseFloat(report.latitude),
+                longitude: parseFloat(report.longitude),
               }}
               title={report.type}
               description={report.details}
-              pinColor={report.type === 'collision' ? 'blue' : 'green'}
+              pinColor={report.type.toLowerCase() === 'road defects' ? 'red' : 'blue'} // ✅ Updated condition
             />
           ))}
+
         </MapView>
       )}
 

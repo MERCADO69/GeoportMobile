@@ -5,21 +5,27 @@ import { View, Text, StyleSheet, Alert, TouchableOpacity, SafeAreaView, TextInpu
 import { useFonts } from '@expo-google-fonts/poppins';
 import SearchIcon from '../../Images/search.svg'; // Make sure the path is correct
 import GetUserData from "../../Functions/getUserData";
+import FetchReportedReports from "../../Functions/fetchReportedReports"
 import GetReverseLocation from "../../Functions/reverseLocationLookup"
 import useLiveLocation from '../../Functions/getCurrentLocation';
 import { useNavigation } from '@react-navigation/native';
+import DisplayReportImage from "../modals/displayReport"
+import { isAwaitKeyword } from 'typescript';
 
 export default function Homescreen() {
-  const [fontsLoaded] = useFonts({
-    Poppins_600SemiBold,
-    Poppins_700Bold,
-    Poppins_400Regular,
-    Poppins_500Medium,
-  });
+     const [fontsLoaded] = useFonts({  Poppins_600SemiBold, Poppins_700Bold, Poppins_400Regular, Poppins_500Medium,});
      const [searchText, setSearchText] = useState('');
      const [data, setUserData] = useState({});
      const location = useLiveLocation();
      const [address,setAddress] = useState('')
+     const [total,TotalReports] = useState('')
+     const [totalSolved,setTotalSolvedReports] = useState('')
+     const [percentSolved,setPercentSolved] = useState('')
+     const [lastdateReported,setLastReportedDate] = useState('')
+     const [listofReports,setListReports] = useState('')
+     const [reportLocations, setReportLocations] = useState({});
+     const [isModalVisible, setIsModalVisible] = useState(false);
+     const [selectedImage, setSelectedImage] = useState(null); 
      const navigation = useNavigation();
   
   useEffect(()=>{
@@ -27,8 +33,7 @@ export default function Homescreen() {
       const fetch = await GetUserData()
       if(fetch){
         setUserData(fetch.data)
-      }
-    }
+      } }
     fetchedData()
   },[])
   
@@ -37,11 +42,105 @@ export default function Homescreen() {
         if(location){
           const location_data = await GetReverseLocation(location.latitude,location.longitude)
           setAddress(location_data);
-        }
-       }
+        } }
        reverse()
       },[location])
   
+    useEffect(()=>{
+      async function fetch(){
+        const reportedReports = await FetchReportedReports();
+          if(reportedReports){
+            const reports = reportedReports.data?.data || {};
+            setListReports(reports)
+            const totalReports = Object.keys(reports).length;
+            const solvedReports = Object.values(reports).filter(report => report.status === "Solved");
+            const completionPercentage = totalReports > 0 ? Math.round((solvedReports.length / totalReports) * 100) : 0;
+            setTotalSolvedReports(solvedReports.length)
+            setPercentSolved(completionPercentage)
+            const dates = Object.values(reports) .map(report => new Date(report.DateAndTime+ "Z")) .sort((a, b) => b - a); 
+            
+            if (dates.length > 0) {
+              const lastReportedDate = dates[0];
+              const currentDate = new Date();
+              const timeDifference = currentDate - lastReportedDate;
+              const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+              const hoursDifference = Math.floor(timeDifference / (1000 * 60 * 60)); 
+              TotalReports(totalReports)
+              if(daysDifference != 0){
+              setLastReportedDate('Last ' +daysDifference+ " ago")}
+              else{
+                setLastReportedDate('Last ' +hoursDifference+ " hours ago")
+              }
+            } else {
+              console.log("No reports found.");
+            }
+          }
+      }
+      fetch()
+    },[])
+
+    useEffect(() => {
+      async function fetchLocations() {
+        const updatedLocations = {};
+        const locationsToFetch = Object.values(listofReports)
+          .filter(report => report.location)
+          .map(report => ({
+            key: `${report.location.latitude},${report.location.longitude}`,
+            latitude: report.location.latitude,
+            longitude: report.location.longitude,
+          }))
+          .filter(({ key }) => !reportLocations[key]);
+    
+        if (locationsToFetch.length === 0) return;
+    
+        try {
+          console.log("Fetching reverse locations for:", locationsToFetch);
+          const locationResults = await Promise.all(locationsToFetch.map(({ latitude, longitude }) => GetReverseLocation(latitude, longitude)));
+    
+          console.log("Fetched location results:", locationResults);
+          
+          locationsToFetch.forEach(({ key }, index) => {
+            updatedLocations[key] = locationResults[index];
+          });
+    
+          setReportLocations(prev => ({ ...prev, ...updatedLocations }));
+        } catch (error) {
+          console.error("Error fetching reverse geolocation:", error);
+        }
+      }
+    
+      if (listofReports && Object.keys(listofReports).length > 0) {
+        fetchLocations();
+      }
+    }, [listofReports]);
+    
+    
+
+    function getTimePassed(dateString) {
+      console.log("Received dateString:", dateString);
+   
+      const reportDate = new Date(dateString + "Z");
+      const currentDate = new Date();
+   
+      console.log("Report Date:", reportDate.toISOString());
+      console.log("Current Date:", currentDate.toISOString());
+   
+      // Convert both to UTC time
+      const timeDifference = currentDate.getTime() - reportDate.getTime(); 
+      
+      const seconds = Math.floor(timeDifference / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+   
+      if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
+      if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+      if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+      return "Just now";
+   }
+   
+
+    
 
   if (!fontsLoaded) {
     return <Text>Loading...</Text>;
@@ -100,8 +199,8 @@ export default function Homescreen() {
             <Text style={[styles.title, styles.orangeText]}>Reports</Text>
             <Ionicons name="bar-chart" size={24} color="#D35400" style={styles.icon} />
           </View>
-          <Text style={[styles.number, styles.cardText]}>25</Text>
-          <Text style={[styles.subtitle, styles.cardText]}>Last 30 Days</Text>
+          <Text style={[styles.number, styles.cardText]}>{total || 0}</Text>
+          <Text style={[styles.subtitle, styles.cardText]}>{lastdateReported}</Text>
         </TouchableOpacity>
 
         {/* Resolved Card */}
@@ -119,8 +218,8 @@ export default function Homescreen() {
             <Text style={[styles.title, styles.blueText]}>Resolved</Text>
             <Ionicons name="calendar" size={24} color="#3498DB" style={styles.icon} />
           </View>
-          <Text style={[styles.number, styles.cardText]}>15</Text>
-          <Text style={[styles.subtitle, styles.cardText]}>78% Completion</Text>
+          <Text style={[styles.number, styles.cardText]}>{totalSolved || 0}</Text>
+          <Text style={[styles.subtitle, styles.cardText]}>{percentSolved + '% Completion'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -128,6 +227,9 @@ export default function Homescreen() {
       <View>
         <Text style={[styles.Quickie]}>Quick Action</Text>
       </View>
+
+
+      <DisplayReportImage  isVisible={isModalVisible}  onClose={() => setIsModalVisible(false)} imageUrl={selectedImage}/>
 
       {/* New Report Button with Icon */}
       <TouchableOpacity style={styles.Quickbutton} onPress={() => navigation.navigate('Camera')}>
@@ -142,107 +244,38 @@ export default function Homescreen() {
         <Text style={[styles.Recent]}>Recent Activity</Text>
       </View>
 
-
       <ScrollView style={styles.recentActivityContainer}>
-  {/* First Card */}
-  <TouchableOpacity
-    style={[styles.card, styles.cardNewType]}
-    onPress={() => {
-      Alert.alert(
-        "Road Issue",
-        "You clicked on the road issue card!",
-        [{ text: "OK", onPress: () => console.log("Road Issue OK Pressed") }]
-      );
-    }}
-  >
-    <View style={styles.cardNewTypeContent}>
-      <Ionicons name="warning" size={30} color="#FA4032" style={styles.iconLeft} />
-      <View style={styles.cardTextContainer}>
-        <Text style={[styles.title, { color: '#FA4032' }]}>Pothole</Text>
-        <Text style={[styles.subtitle, styles.cardText]}>In Progress</Text>
-        <Text style={[styles.location, styles.cardText]}>Barangay XYZ</Text>
-      </View>
-    </View>
-    <View style={styles.cardRight}>
-      <Ionicons name="time" size={18} color="#FA4032" style={styles.iconRight} />
-      <Text style={[styles.timeAgo, styles.cardText]}>10 minutes ago</Text>
-    </View>
-  </TouchableOpacity>
 
-  {/* Second Card */}
-  <TouchableOpacity
-    style={[styles.card, styles.cardNewType]}
-    onPress={() => {
-      Alert.alert(
-        "Car Collision",
-        "You clicked on the Car Collision card!",
-        [{ text: "OK", onPress: () => console.log("Car Collision car Pressed") }]
-      );
-    }}
-  >
-    <View style={styles.cardNewTypeContent}>
-      <Ionicons name="car-outline" size={30} color="#FA4032" style={styles.iconLeft} />
-      <View style={styles.cardTextContainer}>
-        <Text style={[styles.title, { color: '#FA4032' }]}>Car Collision</Text>
-        <Text style={[styles.subtitle, styles.cardText]}>Resolved</Text>
-        <Text style={[styles.location, styles.cardText]}>Barangay ABC</Text>
-      </View>
-    </View>
-    <View style={styles.cardRight}>
-      <Ionicons name="time" size={18} color="#FA4032" style={styles.iconRight} />
-      <Text style={[styles.timeAgo, styles.cardText]}>1 hour ago</Text>
-    </View>
-  </TouchableOpacity>
+      {total && Object.keys(listofReports).length > 0 ? (
+        Object.values(listofReports).map((report, index) => {
+          const locationKey = `${report.location.latitude},${report.location.longitude}`;
+          const reversedLocation = reportLocations[locationKey];
+          
+          return (
+            <TouchableOpacity key={index} style={[styles.card, styles.cardNewType]} onPress={() => {setSelectedImage(report.image); setIsModalVisible(true)}}>
+              <View style={styles.cardNewTypeContent}>
+                <Ionicons name="warning" size={30} color="#FA4032" style={styles.iconLeft} />
+                <View style={styles.cardTextContainer}>
+                  <Text style={[styles.title, { color: '#FA4032' }]}>{report.TypeOfReport}</Text>
+                  <Text style={[styles.subtitle, styles.cardText]}>{report.status}</Text>
+                  <Text style={[styles.location, styles.cardText]}>
+                    {reversedLocation ? `${reversedLocation.barangay}, ${reversedLocation.city}` : "Fetching location..."}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.cardRight}>
+                <Ionicons name="time" size={18} color="#FA4032" style={styles.iconRight} />
+                <Text style={[styles.timeAgo, styles.cardText]}>{getTimePassed(report.DateAndTime)}</Text>
+              </View>
+            </TouchableOpacity>
+                  );
+                })
+              ) : (
+                <Text>No recent activity</Text>
+              )}
 
-  {/* Remaining Cards (scrollable) */}
-  <TouchableOpacity
-    style={[styles.card, styles.cardNewType]}
-    onPress={() => {
-      Alert.alert(
-        "Flooding",
-        "You clicked on the flooding card!",
-        [{ text: "OK", onPress: () => console.log("Flooding OK Pressed") }]
-      );
-    }}
-  >
-    <View style={styles.cardNewTypeContent}>
-      <Ionicons name="rainy" size={30} color="#FA4032" style={styles.iconLeft} />
-      <View style={styles.cardTextContainer}>
-        <Text style={[styles.title, { color: '#FA4032' }]}>Flooding</Text>
-        <Text style={[styles.subtitle, styles.cardText]}>In Progress</Text>
-        <Text style={[styles.location, styles.cardText]}>Barangay DEF</Text>
-      </View>
-    </View>
-    <View style={styles.cardRight}>
-      <Ionicons name="time" size={18} color="#FA4032" style={styles.iconRight} />
-      <Text style={[styles.timeAgo, styles.cardText]}>2 hours ago</Text>
-    </View>
-  </TouchableOpacity>
 
-  {/* Fourth Card */}
-  <TouchableOpacity
-    style={[styles.card, styles.cardNewType]}
-    onPress={() => {
-      Alert.alert(
-        "Streetlight Outage",
-        "You clicked on the streetlight outage card!",
-        [{ text: "OK", onPress: () => console.log("Streetlight Outage OK Pressed") }]
-      );
-    }}
-  >
-    <View style={styles.cardNewTypeContent}>
-      <Ionicons name="bulb" size={30} color="#FA4032" style={styles.iconLeft} />
-      <View style={styles.cardTextContainer}>
-        <Text style={[styles.title, { color: '#FA4032' }]}>Streetlight Outage</Text>
-        <Text style={[styles.subtitle, styles.cardText]}>In Progress</Text>
-        <Text style={[styles.location, styles.cardText]}>Barangay GHI</Text>
-      </View>
-    </View>
-    <View style={styles.cardRight}>
-      <Ionicons name="time" size={18} color="#FA4032" style={styles.iconRight} />
-      <Text style={[styles.timeAgo, styles.cardText]}>3 hours ago</Text>
-    </View>
-  </TouchableOpacity>
+
 </ScrollView>
 
 

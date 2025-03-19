@@ -13,7 +13,22 @@ export default function Morescreen({ navigation }) {
    const [data, setUserData] = useState({});
    const location = useLiveLocation();
    const [address,setAddress] = useState('')
+   const [status,setStatus] = useState()
    
+  useEffect(()=>{
+    if(data.status){
+
+        if(data.status != 'verified'){
+            setStatus('Unverified Resident')
+            return
+        }else{
+          setStatus('Verified Resident')
+        }
+    }
+  })
+
+
+
     useEffect(()=>{
       async function fetchedData(){
         const fetch = await GetUserData()
@@ -70,16 +85,7 @@ export default function Morescreen({ navigation }) {
         </TouchableOpacity>
 
         {/* Total Resolved Card */}
-        <TouchableOpacity
-          style={[styles.card, styles.cardGreen]}
-          onPress={() =>
-            Alert.alert(
-              "Resolved",
-              "You clicked on the Resolved card!",
-              [{ text: "OK", onPress: () => console.log("Resolved OK Pressed") }]
-            )
-          }
-        >
+        <TouchableOpacity style={[styles.card, styles.cardGreen]}>
           <View style={styles.cardContent}>
             <Ionicons name="calendar" size={24} color="#34A853" style={styles.icon} />
             <Text style={[styles.number, styles.greenText]}>15</Text>
@@ -90,20 +96,34 @@ export default function Morescreen({ navigation }) {
 
       {/* Verified Resident Card */}
       <TouchableOpacity
-        style={[styles.verifiedCard]}
-        onPress={() =>
-          Alert.alert(
-            "Verified Resident",
-            "You are a verified resident!",
-            [{ text: "OK", onPress: () => console.log("Verified Resident OK Pressed") }]
-          )
-        }
-      >
-        <View style={styles.verifiedContent}>
-          <Ionicons name="checkmark-circle" size={30} color="#34A853" style={styles.icon} />
-          <Text style={styles.verifiedText}>Verified Resident</Text>
-        </View>
-      </TouchableOpacity>
+  style={styles.verifiedCard}
+  onPress={() =>
+    Alert.alert(
+      status,
+      status === "Verified Resident"
+        ? "You are a verified resident!"
+        : "You are not verified!",
+      [{ text: "OK", onPress: () => console.log("Status checked") }]
+    )
+  }
+>
+  <View style={styles.verifiedContent}>
+    {status === "Verified Resident" ? (
+      <>
+        <Ionicons name="checkmark-circle" size={30} color="#34A853" style={styles.icon} />
+        <Text style={styles.verifiedText}>{status}</Text>
+      </>
+    ) : status === "Unverified Resident" ? (
+      <>
+        <Ionicons name="close-circle" size={30} color="#E74C3C" style={styles.icon} />
+        <Text style={[styles.verifiedText, { color: "#E74C3C" }]}>{status}</Text>
+      </>
+    ) : (
+      <Text style={styles.verifiedText}>Loading...</Text>
+    )}
+  </View>
+</TouchableOpacity>
+
 
       <View style={styles.menuContainer}>
         {/* Member Since */}

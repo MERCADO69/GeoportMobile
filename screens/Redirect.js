@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, SafeAreaView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
-const MobileNumberInput = () => {
+export default function MobileNumberInput(){
   const [fontsLoaded] = useFonts({
     Poppins_600SemiBold,
     Poppins_700Bold,
@@ -191,4 +191,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MobileNumberInput;

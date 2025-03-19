@@ -15,8 +15,7 @@ export const useGoogleAuth = () => {
     useProxy: true, // ✅ Ensures the correct Expo auth flow
   });
 
-  console.log("WEBCLIENT ID:", APP_WEB_CLIENT_ID);
-  console.log("Redirect URI:", redirectUri); // ✅ Should be an Expo-auth proxy URL
+ 
 
   useEffect(() => {
     if (response?.type === "success") {

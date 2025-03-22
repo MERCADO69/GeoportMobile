@@ -17,7 +17,7 @@ export default function DisplayReportImage({ isVisible, onClose, imageUrl }) {
                         autoPlay
                         loop
                         style={styles.lottie}
-                        opacity={loading ? 1 : 0}  // Hide when image is loaded
+                        opacity={loading ? 1 : 0}  
                     />
                 </View>
 

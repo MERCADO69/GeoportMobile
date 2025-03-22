@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useReducer } from "react";
 import { TouchableOpacity, StyleSheet, Alert,ActivityIndicator,View,Modal, Text, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Ionicons";
@@ -7,7 +7,9 @@ import ValidateReport from "../../Functions/ValidateReport";
 import SuccessModal from "../modals/success"
 import StoreReportToDatabase from  "../../Functions/storeReportToDatabase"
 import uploadToCloudinary from "../../Functions/cloudinaryUploader"
+import GetUserData from "../../Functions/getUserData"
 import useLiveLocation from "../../Functions/getCurrentLocation";
+import GuideModal from "../modals/guideModal"
 
 export default function Camera() {
   const [flashOn, setFlashOn] = useState(false);
@@ -15,6 +17,9 @@ export default function Camera() {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [reportMessage,setReportMessage] = useState('')
+  const [status,setStatus] = useState('')
+  const [showGuide, setShowGuide] = useState(false);
+  const [buttonStatus,setButtonStatus] = useState(true)
   const [modalStatus, setModalStatus] = useState("validated");
   const loc = useLiveLocation()
 
@@ -101,14 +106,33 @@ export default function Camera() {
     }
   }
   
-
+   useEffect(()=>{
+        async function FetchData() {  
+            const data = await GetUserData()
+          if(data) {
+                let status = data.data?.status
+                if(status !== 'unverified'){
+                  setButtonStatus(false)
+                  setShowGuide(true);
+                }else{
+                  setButtonStatus(true)
+                  setShowGuide(false)
+                  Alert.alert("Warning", "You're not eligible for this feature. Please verify yourself first to enable this feature. Thank you.");
+                }
+          }
+        }
+        FetchData()
+    },[])
 
   
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.Issue}>
-        Point the camera at the Road issue{"\n"}or at the Collision
-      </Text>
+    <TouchableOpacity onPress={() => setShowGuide(true)} style={styles.helpButton}>
+      <Text style={styles.helpText}>📘 How to Use This Feature</Text>
+    </TouchableOpacity>
+
+
+      <GuideModal showGuide={showGuide} setShowGuide={setShowGuide} />
 
       <Modal transparent={true} animationType="fade" visible={loading}>
         <View style={styles.modalContainer}>
@@ -128,7 +152,7 @@ export default function Camera() {
       </TouchableOpacity>
 
       {/* Camera Button */}
-      <TouchableOpacity onPress={handleCameraPress} style={styles.cameraButton}>
+      <TouchableOpacity onPress={handleCameraPress} style={[styles.cameraButton,{backgroundColor : buttonStatus? "#ccc":"#FA812F"}]} disabled={buttonStatus}>
         <Icon name="camera" size={40} color="white" />
       </TouchableOpacity>
 
@@ -157,7 +181,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80, 
     borderRadius: 40,
-    backgroundColor: "#FA812F",
+    // backgroundColor: "#FA812F",
     justifyContent: "center",
     alignItems: "center",
   },

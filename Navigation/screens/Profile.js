@@ -7,6 +7,8 @@ import GetUserData from "../../Functions/getUserData";
 import { auth } from "../../firebaseConfig";
 import GetReverseLocation from "../../Functions/reverseLocationLookup"
 import useLiveLocation from '../../Functions/getCurrentLocation';
+import FetchReportedReports from "../../Functions/fetchReportedReports"
+
 
 export default function Morescreen({ navigation }) {
    const user = auth.currentUser;
@@ -14,10 +16,11 @@ export default function Morescreen({ navigation }) {
    const location = useLiveLocation();
    const [address,setAddress] = useState('')
    const [status,setStatus] = useState()
+   const [reportTotal,setReportTotal] = useState(0)
+   const [solvedTotal,setSolvedTotal] = useState(0)
    
   useEffect(()=>{
     if(data.status){
-
         if(data.status != 'verified'){
             setStatus('Unverified Resident')
             return
@@ -51,6 +54,23 @@ export default function Morescreen({ navigation }) {
     },[location])
 
 
+    useEffect(()=>{
+      console.log('running')
+        async function fetchReports() {
+          const result =  await FetchReportedReports()
+          if(result && result.data){
+            let data = result.data?.data || {}
+            const total = Object.keys(data).length;
+            setReportTotal(total)
+            const solvedReports = Object.values(data).filter(report => report.status === "Solved");
+            setSolvedTotal(solvedReports.length)
+          }
+        }
+        fetchReports()
+    },[])
+
+
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -67,19 +87,10 @@ export default function Morescreen({ navigation }) {
 
       <View style={styles.parentCard}>
         {/* Total Reports Card */}
-        <TouchableOpacity
-          style={[styles.card, styles.cardOrange]}
-          onPress={() =>
-            Alert.alert(
-              "Total Reports",
-              "You clicked on the Total Reports card!",
-              [{ text: "OK", onPress: () => console.log("Total Reports OK Pressed") }]
-            )
-          }
-        >
+        <TouchableOpacity style={[styles.card, styles.cardOrange]}>
           <View style={styles.cardContent}>
             <Ionicons name="bar-chart" size={24} color="#D35400" style={styles.icon} />
-            <Text style={[styles.number, styles.orangeText]}>25</Text>
+            <Text style={[styles.number, styles.orangeText]}>{reportTotal}</Text>
           </View>
           <Text style={[styles.cardTitle, styles.orangeText]}>Total Reports</Text>
         </TouchableOpacity>
@@ -88,7 +99,7 @@ export default function Morescreen({ navigation }) {
         <TouchableOpacity style={[styles.card, styles.cardGreen]}>
           <View style={styles.cardContent}>
             <Ionicons name="calendar" size={24} color="#34A853" style={styles.icon} />
-            <Text style={[styles.number, styles.greenText]}>15</Text>
+            <Text style={[styles.number, styles.greenText]}>{solvedTotal}</Text>
           </View>
           <Text style={[styles.cardTitle, styles.greenText]}>Total Resolved</Text>
         </TouchableOpacity>

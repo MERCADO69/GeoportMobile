@@ -17,13 +17,11 @@ export default async function FetchReportedReports(){
   const url = `http://${SERVER_IP}:${SERVER_PORT}/${FETCH_REPORTED_REPORTS}?id=${id}`
   
  try{
- console.log('Fetching user reports ',url)
  const response = await axios.get(url,{
   headers:{
     "Content-Type": "application/json",
    Authorization: `Bearer ${token}`
   }})
-console.log(response.data)
 return response.data;
 }catch(error){
     console.error(error)

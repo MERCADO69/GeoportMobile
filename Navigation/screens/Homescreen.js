@@ -117,13 +117,9 @@ export default function Homescreen() {
     
 
     function getTimePassed(dateString) {
-      console.log("Received dateString:", dateString);
    
       const reportDate = new Date(dateString + "Z");
       const currentDate = new Date();
-   
-      console.log("Report Date:", reportDate.toISOString());
-      console.log("Current Date:", currentDate.toISOString());
    
       // Convert both to UTC time
       const timeDifference = currentDate.getTime() - reportDate.getTime(); 

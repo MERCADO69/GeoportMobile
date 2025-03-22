@@ -3,6 +3,7 @@ import { View, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, Text } fro
 import MapView, { UrlTile, Marker } from 'react-native-maps';
 import SearchIcon from '../../Images/search.svg';
 import useLiveLocation from '../../Functions/getCurrentLocation';
+import GetUserData from "../../Functions/getUserData"
 import fetchReports from "../../Functions/fetchReports";
 
 export default function MapsScreen() {
@@ -11,7 +12,7 @@ export default function MapsScreen() {
   const [searchText, setSearchText] = useState('');
   const [reportData, setReportData] = useState([]);
   const location = useLiveLocation(); 
-
+  const [status,setStatus] = useState('')
   const [initialRegion, setInitialRegion] = useState(null);
 
   // Set initial region only ONCE when location is available
@@ -29,6 +30,19 @@ export default function MapsScreen() {
   useEffect(() => {
     fetchReports(setReportData);
   }, []);
+
+  
+
+  useEffect(()=>{
+      async function FetchData() {  
+          const data = await GetUserData()
+        if(data){
+          let status = data.data?.status
+          setStatus(status)
+        }
+      }
+      FetchData()
+  },[])
 
   return (
     <SafeAreaView style={styles.container}>

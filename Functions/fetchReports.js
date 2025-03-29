@@ -13,7 +13,7 @@ export default async function fetchReports(setReportData) {
     try {
         let token = await user.getIdToken();
         const url = `ws://${SERVER_IP}:${SERVER_PORT}/${FETCH_REPORT}?token=${token}`;
-
+        console.log('url for fetching reports ',url)
         if (!socket || socket.readyState === WebSocket.CLOSED) {
             socket = new WebSocket(url);
         
@@ -24,7 +24,7 @@ export default async function fetchReports(setReportData) {
             socket.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
-                    setReportData(data);  // ✅ Updates the state in MapsScreen
+                    setReportData(data);  
                 } catch (error) {
                     console.error("Error parsing WebSocket data:", error);
                 }
@@ -36,7 +36,7 @@ export default async function fetchReports(setReportData) {
 
             socket.onclose = () => {
                 console.log("WebSocket Disconnected! Reconnecting...");
-                setTimeout(() => fetchReports(setReportData), 5000);  // Auto-reconnect
+                setTimeout(() => fetchReports(setReportData), 5000);  
             };
         }
     } catch (error) {

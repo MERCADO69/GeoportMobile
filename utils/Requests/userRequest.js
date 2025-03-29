@@ -1,0 +1,10 @@
+
+class UserRequest{
+
+
+    updateuserStatus(data){
+        
+    }
+
+    
+}

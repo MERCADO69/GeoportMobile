@@ -3,14 +3,13 @@ import { Ionicons } from 'react-native-vector-icons';
 import { Poppins_500Medium, Poppins_700Bold, Poppins_600SemiBold, Poppins_400Regular } from '@expo-google-fonts/poppins';
 import { View, Text, StyleSheet, Alert, TouchableOpacity, SafeAreaView, TextInput, ScrollView } from 'react-native';
 import { useFonts } from '@expo-google-fonts/poppins';
-import SearchIcon from '../../Images/search.svg'; // Make sure the path is correct
+import SearchIcon from '../../Images/search.svg'; 
 import GetUserData from "../../Functions/getUserData";
 import FetchReportedReports from "../../Functions/fetchReportedReports"
 import GetReverseLocation from "../../Functions/reverseLocationLookup"
 import useLiveLocation from '../../Functions/getCurrentLocation';
 import { useNavigation } from '@react-navigation/native';
 import DisplayReportImage from "../modals/displayReport"
-import { isAwaitKeyword } from 'typescript';
 
 export default function Homescreen() {
      const [fontsLoaded] = useFonts({  Poppins_600SemiBold, Poppins_700Bold, Poppins_400Regular, Poppins_500Medium,});
@@ -94,11 +93,8 @@ export default function Homescreen() {
         if (locationsToFetch.length === 0) return;
     
         try {
-          console.log("Fetching reverse locations for:", locationsToFetch);
           const locationResults = await Promise.all(locationsToFetch.map(({ latitude, longitude }) => GetReverseLocation(latitude, longitude)));
     
-          console.log("Fetched location results:", locationResults);
-          
           locationsToFetch.forEach(({ key }, index) => {
             updatedLocations[key] = locationResults[index];
           });
@@ -170,7 +166,7 @@ export default function Homescreen() {
         </View>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search Location"
+          placeholder="Search"
           placeholderTextColor="#999"
           value={searchText}
           onChangeText={setSearchText}
@@ -267,7 +263,8 @@ export default function Homescreen() {
                   );
                 })
               ) : (
-                <Text>No recent activity</Text>
+                <Text style={styles.norecent}>No recent activity</Text>
+
               )}
 
 
@@ -439,8 +436,8 @@ const styles = StyleSheet.create({
     shadowRadius: 3.5,
 
     position: 'absolute',
-    top: -160,  // Adjust top value to place the icon correctly
-    right: 20,  // Use 'right' instead of 'marginLeft' for flexible positioning
+    top: -160, 
+    right: 20, 
   },
   
   Welcomeuser:{
@@ -453,7 +450,7 @@ const styles = StyleSheet.create({
 
   },
   locationIcon: {
-    marginTop: 10, // Space between the text and the icon
+    marginTop: 10, 
     position: 'absolute',
     marginTop: -135,
     marginLeft: 20,
@@ -467,20 +464,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#dcdcdc',
     borderRadius: 8,
-    backgroundColor: 'FEFEFE'
+    backgroundColor: '#FEFEFE'
   },
-  
   iconLeft: {
     marginRight: 10,
   },
-  
   cardTextContainer: {
     flexDirection: 'column',
     justifyContent: 'center',
     flexShrink: 0,
     width: '60%',
   },
-  
   title: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -516,5 +510,12 @@ const styles = StyleSheet.create({
   },
   recentActivityContainer: {
     backgroundColor: '#FEFEFE',
-  }
+  },
+  norecent: {
+    fontFamily: 'Poppins_400Regular',
+    paddingLeft: 24,
+    fontSize: 14,
+    color: '#555', 
+  },
+  
 });

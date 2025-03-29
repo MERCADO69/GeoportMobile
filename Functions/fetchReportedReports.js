@@ -1,6 +1,6 @@
 import {auth} from "../firebaseConfig";
 import axios from "axios";
-import {FETCH_REPORTED_REPORTS,SERVER_PORT,SERVER_IP} from "@env"
+import {FETCH_REPORTED_REPORTS,SERVER_PORT,SERVER_IP,NGROK_URL} from "@env"
 
 
 export default async function FetchReportedReports(){
@@ -15,6 +15,7 @@ export default async function FetchReportedReports(){
     return true;
   }
   const url = `http://${SERVER_IP}:${SERVER_PORT}/${FETCH_REPORTED_REPORTS}?id=${id}`
+  const ngrok_url = `${NGROK_URL}/${FETCH_REPORTED_REPORTS}?id=${id}`;
   
  try{
  const response = await axios.get(url,{
@@ -24,6 +25,6 @@ export default async function FetchReportedReports(){
   }})
 return response.data;
 }catch(error){
-    console.error(error)
+    console.error('fetch reported reports ',error.message)
 }
 }

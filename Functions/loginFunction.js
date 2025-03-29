@@ -6,6 +6,8 @@ export default async function loginFunction(email, password) {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         return userCredential.user; 
     } catch (error) {
-        console.log("Login Error:", error.message);
+        return { success: false, message: error.message, code: error.code }; 
     }
 }
+
+

@@ -1,7 +1,7 @@
 import { Poppins_400Regular, Poppins_500Medium } from '@expo-google-fonts/poppins';
 import React from 'react';
-import  { useState,useEffect  } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
+import  { useState,useEffect ,useCallback} from 'react';
+import { View, Text, StyleSheet, SafeAreaView,ScrollView, TouchableOpacity, RefreshControl,Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import GetUserData from "../../Functions/getUserData";
 import { auth } from "../../firebaseConfig";
@@ -18,6 +18,7 @@ export default function Morescreen({ navigation }) {
    const [status,setStatus] = useState()
    const [reportTotal,setReportTotal] = useState(0)
    const [solvedTotal,setSolvedTotal] = useState(0)
+   const [refreshing, setRefreshing] = useState(false);
    
   useEffect(()=>{
     if(data.status){
@@ -69,10 +70,24 @@ export default function Morescreen({ navigation }) {
         fetchReports()
     },[])
 
+ 
+
+    const onRefresh = useCallback(async () => {
+       setRefreshing(true);
+       await fetchData();
+       await fetchReports();
+       await reverse();
+       setRefreshing(false);
+    }, []);
 
 
   return (
     <SafeAreaView style={styles.container}>
+      <ScrollView
+            refreshControl={
+               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+         >
       <View style={styles.header}>
         <View style={styles.profileContainer}>
           {/* Add your profile image inside this container later */}
@@ -107,17 +122,15 @@ export default function Morescreen({ navigation }) {
 
       {/* Verified Resident Card */}
       <TouchableOpacity
-  style={styles.verifiedCard}
-  onPress={() =>
-    Alert.alert(
-      status,
-      status === "Verified Resident"
-        ? "You are a verified resident!"
-        : "You are not verified!",
-      [{ text: "OK", onPress: () => console.log("Status checked") }]
-    )
-  }
->
+          style={styles.verifiedCard}
+          onPress={() => {
+            if (status === "Unverified Resident") {
+              navigation.navigate("VerifyAccount");
+            } else {
+              Alert.alert("Verified Resident", "You are a verified resident!");
+            }
+          }}
+        >
   <View style={styles.verifiedContent}>
     {status === "Verified Resident" ? (
       <>
@@ -188,7 +201,7 @@ export default function Morescreen({ navigation }) {
           </View>
         </TouchableOpacity>
       </View>
-
+      </ScrollView>
     </SafeAreaView>
   );
 }

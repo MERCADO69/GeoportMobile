@@ -125,40 +125,36 @@ export default function Camera() {
     },[])
 
   
-  return (
-    <SafeAreaView style={styles.container}>
-    <TouchableOpacity onPress={() => setShowGuide(true)} style={styles.helpButton}>
-      <Text style={styles.helpText}>📘 How to Use This Feature</Text>
-    </TouchableOpacity>
-
-
-      <GuideModal showGuide={showGuide} setShowGuide={setShowGuide} />
-
-      <Modal transparent={true} animationType="fade" visible={loading}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <ActivityIndicator size="large" color="#FA812F" />
-            <Text style={styles.loadingText}>Scanning image...</Text>
+    return (
+      <SafeAreaView style={styles.container}>
+      <TouchableOpacity onPress={() => setShowGuide(true)} style={styles.helpButton}>
+        <Text style={styles.helpText}>📘 How to Use This Feature</Text>
+      </TouchableOpacity>
+  
+  
+        <GuideModal showGuide={showGuide} setShowGuide={setShowGuide} />
+  
+        <Modal transparent={true} animationType="fade" visible={loading}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <ActivityIndicator size="large" color="#FA812F" />
+              <Text style={styles.loadingText}>Scanning image...</Text>
+            </View>
           </View>
-        </View>
-      </Modal>
-
-      {/* Display Captured Image */}
-      {photoUri && <Image source={{ uri: photoUri }} style={styles.previewImage} />}
-
-      {/* Flash Icon */}
-      <TouchableOpacity onPress={() => setFlashOn(!flashOn)} style={styles.flashButton}>
-        <Icon name={flashOn ? "flash" : "flash-outline"} size={30} color="#FA812F" />
-      </TouchableOpacity>
-
-      {/* Camera Button */}
-      <TouchableOpacity onPress={handleCameraPress} style={[styles.cameraButton,{backgroundColor : buttonStatus? "#ccc":"#FA812F"}]} disabled={buttonStatus}>
-        <Icon name="camera" size={40} color="white" />
-      </TouchableOpacity>
-
-      <SuccessModal isVisible={isModalVisible} status={modalStatus} text={reportMessage} onClose={() => setModalVisible(false)}/>
-    </SafeAreaView>
-  );
+        </Modal>
+  
+        {/* Display Captured Image */}
+        {photoUri && <Image source={{ uri: photoUri }} style={styles.previewImage} />}
+  
+      
+        {/* Camera Button */}
+        <TouchableOpacity onPress={handleCameraPress} style={[styles.cameraButton,{backgroundColor : buttonStatus? "#ccc":"#FA812F"}]} disabled={buttonStatus}>
+          <Icon name="radio-button-off" size={80} color="white" />
+        </TouchableOpacity>
+  
+        <SuccessModal isVisible={isModalVisible} status={modalStatus} text={reportMessage} onClose={() => setModalVisible(false)}/>
+      </SafeAreaView>
+    );
 }
 
 // Styles

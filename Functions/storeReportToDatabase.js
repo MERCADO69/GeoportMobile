@@ -1,11 +1,13 @@
-import { SEND_REPORT_ENDPOINT, SERVER_PORT, SERVER_IP } from "@env";
+import { SEND_REPORT_ENDPOINT, SERVER_PORT, SERVER_IP,NGROK_URL } from "@env";
 import GetUserData from "../Functions/getUserData";
 import { auth } from "../firebaseConfig";
+import deleteFromCloudinary from "../Functions/cloudinaryRemoveImage"
 import axios from "axios";
 
 export default async function StoreReportToDatabase(imageurl, report_type,loc) {
 
   const url = `http://${SERVER_IP}:${SERVER_PORT}/${SEND_REPORT_ENDPOINT}`;
+  const ngrok_url = `${NGROK_URL}/${SEND_REPORT_ENDPOINT}`;
   let user = auth.currentUser;
   console.log("Submitting report to:", url);
 
@@ -37,7 +39,6 @@ export default async function StoreReportToDatabase(imageurl, report_type,loc) {
       message: "Failed to retrieve user data.",
     };
   }
-  console.log(name)
 
   
 
@@ -61,7 +62,7 @@ export default async function StoreReportToDatabase(imageurl, report_type,loc) {
   console.log("Submitting data:", dataTobeSave);
 
   try {
-    const response = await axios.post(url, dataTobeSave, {
+    const response = await axios.post(ngrok_url, dataTobeSave, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -70,6 +71,14 @@ export default async function StoreReportToDatabase(imageurl, report_type,loc) {
 
     if (!response || !response.data) {
       console.log('unsuccessfull submission of report')
+
+      // const removeImage = await deleteFromCloudinary(imageurl)
+      // if(!removeImage){
+      //   return {
+      //     success: false,
+      //     message: "No response from server. Check your network connection.Unable to remove the image to image hosting platform.",
+      //   };
+      // }
       return {
         success: false,
         message: "No response from server. Check your network connection.",
@@ -89,8 +98,7 @@ export default async function StoreReportToDatabase(imageurl, report_type,loc) {
   }
 }
 
-// ✅ Helper function for timestamps
-const getCurrentTimestamp = () => {
+function getCurrentTimestamp(){
   return new Date().toISOString().slice(0, 19);
 };
 

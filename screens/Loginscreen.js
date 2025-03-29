@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, Alert ,Dimensions,View} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts, Poppins_600SemiBold, Poppins_700Bold, Poppins_400Regular, Poppins_500Medium } from '@expo-google-fonts/poppins';
 import { auth } from "../firebaseConfig";
+import { useForm } from "react-hook-form";
 import { onAuthStateChanged } from "firebase/auth";
+import ErrorMessage from "../utils/errorMessage"
+import { BackHandler } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 //functions
 import loginFunction from '../Functions/loginFunction';
@@ -21,6 +25,8 @@ import Either from '../Images/choices.svg';
 
 export default function LoginScreen({ navigation }) {
   const { promptAsync } = useGoogleAuth();
+  const { width, height } = Dimensions.get("window");
+  const insets = useSafeAreaInsets();
   
   const [fontsLoaded] = useFonts({
     Poppins_600SemiBold,
@@ -51,19 +57,17 @@ export default function LoginScreen({ navigation }) {
     return
   }
 
-
   try {
     const tryToLogin =  await loginFunction(form.email, form.password);
 
-    if(tryToLogin) {
+    if(tryToLogin.success) {
       navigation.navigate('homepage');
-    }
-    else{
-      Alert.alert('Error', 'Invalid Credentials');
-      return;
+      return
+    }else{
+      const customErrorMessage = ErrorMessage(tryToLogin.code)
+      Alert.alert('Error', customErrorMessage);
     }}catch (error) {
-      Alert.alert('Error', 'Invalid Credentials');
-      return;
+      Alert.alert('Error', error.message || 'Something went wrong.');
     }
   } 
 
@@ -84,152 +88,148 @@ useEffect(() => {
 
 
 
-  return (
+return (
+  <View 
+    style={[
+      styles.container, 
+      { 
+        paddingBottom: Platform.OS === 'android' ? 0 : insets.bottom 
+      }
+    ]}
+  > 
+    <StatusBar 
+      barStyle="dark-content"
+      backgroundColor="transparent"
+      translucent={true}
+    />
+    <ScrollView 
+      contentContainerStyle={styles.scrollContainer} 
+      keyboardShouldPersistTaps='handled'
+      showsVerticalScrollIndicator={false}
+    >
+      <SafeAreaView style={styles.innerContainer}>
+        <View style={styles.logoContainer}>
+          <Mylogo width={width * 0.7} height={height * 0.2} />
+          <Tagline width={width * 0.6} height={height * 0.07} style={styles.tagline} />
+        </View>
 
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-    <SafeAreaView style={styles.container}>
-      
-      {/* Logo and tagline display */}
-      <Mylogo width={300} height={150} />
-      <Tagline width={200} height={60} style={{ marginBottom: 40 }}/>
-
-      {/* Login Form */}
-      <SafeAreaView style={[styles.Loginform]}>
-        {/* Email input field */}
-        <SafeAreaView style={[styles.TextInput]}>
-          <Text style={[styles.Inputlabel]}>Email address or phone</Text>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Email addre</Text>
           <TextInput 
+            style={styles.input} 
+            keyboardType="email-address" 
+            placeholder="example@gmail.com" 
+            placeholderTextColor="#A9A9A9"
+            value={form.email} 
+            onChangeText={(email) => setForm({ ...form, email })}
+            autoCapitalize="none"
             autoCorrect={false}
-            autoCapitalize="none" 
-            keyboardType="email-address"
-            style={[styles.InputControl]}
-            value={form.email}
-            placeholder="ex.Juandelacruz@gmail.com" 
-            placeholderTextColor="#rgba(169, 169, 169, 0.71)"
-            onChangeText={email => setForm({...form, email})}
           />
-        </SafeAreaView>
-
-        {/* Password input field */}
-        <SafeAreaView style={[styles.TextInput, { marginTop: -25 }]}>
-          <Text style={[styles.Inputlabel]}></Text>
+          <Text style={styles.label}>Password</Text>
           <TextInput 
-            style={[styles.InputControl]}
-            value={form.password}
-            placeholder="Password"
-            placeholderTextColor="#rgba(169, 169, 169, 0.71)"
-            secureTextEntry={true}
-            onChangeText={password => setForm({...form, password})}
+            style={styles.input} 
+            secureTextEntry 
+            placeholder="" 
+            placeholderTextColor="#A9A9A9"
+            value={form.password} 
+            onChangeText={(password) => setForm({ ...form, password })}
+            autoCapitalize="none"
+            autoCorrect={false}
           />
-        </SafeAreaView>
+        </View>
 
-        {/* Log In button */}
-        <SafeAreaView style={[styles.FormAction, { marginTop: 25 }]}>
-         
-          <TouchableOpacity  style={styles.Btn} onPress={() => handleLogin()} >
-            <Text style={styles.Btntxt}>Log In</Text>
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <Text style={styles.loginText}>Login</Text>
+        </TouchableOpacity>
+
+        <Either width={width * 0.8} height={height * 0.05} style={styles.either} />
+
+        <View style={styles.authContainer}>
+          <TouchableOpacity style={styles.authButton} onPress={() => {}}>
+            <FB width={40} height={40} />
           </TouchableOpacity>
+          <TouchableOpacity style={styles.authButton} onPress={promptAsync}>
+            <ContinueG width={40} height={40} />
+          </TouchableOpacity>
+        </View>
 
-        </SafeAreaView>
+        <TouchableOpacity onPress={() => navigation.navigate('Forgetpass')}>
+          <Text style={styles.forgotPassword}>Forgot Password?</Text>
+        </TouchableOpacity>
       </SafeAreaView>
-
-      {/* Displaying SVG with position control */}
-      <SafeAreaView style={[styles.eithercontainer]}>
-        <Either width={300} height={1050}/> 
-      </SafeAreaView>
-
-      {/* Facebook and Google buttons */}
-      <SafeAreaView style={[styles.fbContainerGoogle]}>
-        <FB width={38} height={300} />
-        <ContinueG width={38} height={300} onPress={()=> promptAsync()}/>
-      </SafeAreaView>
-
-      {/* Forgot Password link */}
-      <SafeAreaView style={styles.forgotPasswordContainer}>
-      <TouchableOpacity  onPress={() => { navigation.navigate('Forgetpass'); }}>
-        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-      </TouchableOpacity>
-      </SafeAreaView>
-
-      {/* Status bar settings */}
-      <StatusBar style="auto" />
-    </SafeAreaView>
     </ScrollView>
-    </KeyboardAvoidingView>
-  );
+  </View>
+);
 }
 
 // CSS / StyleSheet for the component
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FEFEFE", 
-    justifyContent: "flex-start", 
+const styles = {
+  container: { 
+    flex: 1, 
+    backgroundColor: "#FEFEFE",
+  },
+  scrollContainer: { 
+    flexGrow: 1, 
+    justifyContent: "center", 
+    alignItems: "center" 
+  },
+  innerContainer: { 
     alignItems: "center", 
-    paddingBottom: 50,
+    width: "90%" 
   },
-  fbContainerGoogle: {
-    flexDirection: "row", 
-    justifyContent: "space-between", 
+  logoContainer: { 
     alignItems: "center", 
-    width: "25%", 
+    justifyContent: "center", 
+    marginBottom: 50 
   },
-  eithercontainer: {
-    position: "absolute",
-    bottom: -200, 
-    zIndex: -1, 
-    alignSelf: "center",
-  }
-  ,
-  Inputlabel: {
-    fontFamily: "Poppins_500Medium",
-    paddingTop: 15,
-    marginRight: '120',
-    color: 'gray',
-    marginBottom: 5,
+  tagline: { marginTop: -5 },
+  inputContainer: { width: "97%" },
+  label: { 
+    fontFamily: 'Poppins_500Medium', 
+    color: "gray", 
+    marginBottom: 5 
   },
-  InputControl: {
-    backgroundColor: '#FDFDFD', 
-    height: 50,  
-    width: 300, 
-    paddingHorizontal: 16,  
-    borderRadius: 30,  
-    borderColor: 'rgba(169, 169, 169, 0.5)', 
+  input: {
+    backgroundColor: "#FDFDFD",
+    height: 50,
+    width: "100%",
+    paddingHorizontal: 16,
+    borderRadius: 30,
+    borderColor: "rgba(169, 169, 169, 0.5)",
     borderWidth: 1.5,
     fontFamily: "Poppins_400Regular",
     fontSize: 16,
+    marginBottom: 15,
   },
-  Btn: {
-    backgroundColor: '#FA812F', 
-    borderRadius: 30,  
+  loginButton: {
+    backgroundColor: "#FA812F",
+    borderRadius: 30,
     height: 50,
-    borderWidth: 1,
-    borderColor: 'rgba(169, 169, 169, 0.5)', 
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    width: "97%",
+    marginBottom: 20,
   },
-  Btntxt: {
+  loginText: { 
     fontSize: 18, 
     fontFamily: "Poppins_500Medium", 
-    color: "white", 
+    color: "white" 
   },
-  forgotPasswordContainer: {
-    position: 'absolute',
-    bottom: 100,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
+  
+  either: { marginVertical: 15 },
+  authContainer: { 
+    flexDirection: "row", 
+    justifyContent: "center", 
+    gap: 20, 
+    marginTop: 20 
   },
-  forgotPasswordText: {
-    fontFamily: "Poppins_500Medium",
-    color: '#FA812F', 
-    fontSize: 12,
-    textDecorationLine: 'none',
-    textAlign: 'center',
-  }
-});
+  authButton: { alignItems: "center" },
+  forgotPassword: {
+    fontFamily: "Poppins_500Medium", 
+    color: "#FA812F", 
+    fontSize: 12, 
+    textAlign: "center", 
+    marginTop: 60, 
+    marginBottom: 20,
+  },
+};

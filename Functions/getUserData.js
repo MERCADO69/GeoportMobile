@@ -23,7 +23,7 @@ export default async function GetUserData() {
            return response.data;
 
         }catch(error){
-            console.error(error);
+            console.error('Error in fetching user data ',error);
         }
 }
 

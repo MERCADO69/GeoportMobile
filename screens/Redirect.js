@@ -1,193 +1,334 @@
-import { Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins';
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, SafeAreaView } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Animated, ScrollView, ActivityIndicator, Image } from 'react-native';
+import { useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
+import LottieView from 'lottie-react-native';
+import { Ionicons } from '@expo/vector-icons';
+import ValidateId from "../Functions/validateImage";
+import ValidateFace from "../Functions/verifyImage";
 
-export default function MobileNumberInput(){
-  const [fontsLoaded] = useFonts({
-    Poppins_600SemiBold,
-    Poppins_700Bold,
-    Poppins_400Regular,
-    Poppins_500Medium,
-  });
-
-  const [phoneNumber, setPhoneNumber] = useState('+63');
-  const [address, setAddress] = useState('');
-  const [barangay, setBarangay] = useState('');
-  const [purok, setPurok] = useState('');
+export default function IdentityVerification() {
+  const [permission, requestPermission] = useCameraPermissions();
+  const [capturedID, setCapturedID] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [idValidated, setIdValidated] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  if (!fontsLoaded) {
-    return <Text>Loading...</Text>;
+  useEffect(() => {
+    if (!permission) {
+      requestPermission();
+    }
+  }, [permission]);
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 0.5, duration: 1500, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  const openCameraForID = async () => {
+    try {
+      const { granted } = await ImagePicker.requestCameraPermissionsAsync();
+      if (!granted) {
+        Alert.alert("Permission required", "Camera access is needed");
+        return;
+      }
+      
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        quality: 0.8,
+        aspect: [4, 3],
+        base64: false
+      });
+  
+      if (result.canceled || !result.assets?.[0]?.uri) {
+        return;
+      }
+  
+      const imageUri = result.assets[0].uri;
+      setCapturedImage(imageUri);
+  
+      // Automatically validate the captured image
+      setLoading(true);
+      try {
+        const validation = await ValidateId(imageUri);
+        if (validation.success) {
+          setCapturedID(imageUri);
+          setIdValidated(true);
+          setCapturedImage(null);
+          Alert.alert("Success", "ID validated successfully");
+        } else {
+          throw new Error(validation.error || "ID validation failed");
+        }
+      } catch (error) {
+        Alert.alert("Error", error.message);
+      } finally {
+        setLoading(false);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to open camera");
+    }
+  };
+  
+
+  const validateCapturedID = async () => {
+    try {
+      setLoading(true);
+      console.log(capturedID)
+      const validation = await ValidateId(capturedImage);
+      
+      if (validation.success) {
+        setCapturedID(capturedImage);
+        setIdValidated(true);
+        setCapturedImage(null);
+        Alert.alert("Success", "ID validated successfully");
+      } else {
+        throw new Error(validation.error || "ID validation failed");
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const takeFacePhoto = async () => {
+    try {
+      const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+  
+      if (!cameraPermission.granted) {
+        Alert.alert("Permission required", "We need camera permissions to take photos");
+        return;
+      }
+  
+      let result = await ImagePicker.launchCameraAsync({ 
+        allowsEditing: true, 
+        quality: 1,
+        aspect: [4, 3],
+        base64: true
+      });
+  
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const imageUri = result.assets[0].uri;
+        setProfileImage(imageUri);
+        setLoading(true); // Start animation
+  
+        try {
+          const response = await ValidateFace(capturedID, imageUri);
+          if (response?.success) {
+            Alert.alert("Success", "Verification successful!");
+          } else {
+            Alert.alert(
+              "Verification Failed", 
+              response?.error || "Could not verify your identity. Please try again."
+            );
+          }
+        } catch (apiError) {
+          console.error("API Error:", apiError);
+          Alert.alert("Network Error", "Could not connect to verification service");
+        }
+      }
+    } catch (error) {
+      console.error("Error capturing face:", error);
+      Alert.alert("⚠️ Error", "Failed to capture face photo. Please try again.");
+    } finally {
+      setLoading(false); // Stop animation
+    }
+  };
+  
+
+  if (!permission) {
+    return <View />;
   }
 
-  const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Please allow access to your camera.');
-      return;
-    }
-
-    let result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
-    }
-  };
-
-  const handleFinishSetup = () => {
-    if (!profileImage) {
-      Alert.alert('Profile Required', 'Please take a profile photo.');
-      return;
-    }
-    if (phoneNumber.replace(/[^\d]/g, '').length !== 12) {
-      Alert.alert('Invalid Number', 'Please enter a valid mobile number.');
-      return;
-    }
-    if (!address || !barangay || !purok) {
-      Alert.alert('Missing Fields', 'Please fill in all details.');
-      return;
-    }
-
-    console.log('Profile Image:', profileImage);
-    console.log('Phone Number:', phoneNumber);
-    console.log('Address:', address);
-    console.log('Barangay:', barangay);
-    console.log('Purok:', purok);
-  };
+  if (!permission.granted) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.message}>We need your permission to show the camera</Text>
+        <Button onPress={requestPermission} title="Grant Permission" />
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.safeContainer}>
-      <View style={styles.container}>
-        <Text style={styles.infoText}>
-          This section collects information to verify that you are a resident of Malaybalay.
-        </Text>
-
-        {/* Profile Photo Section */}
-        <TouchableOpacity onPress={takePhoto} style={styles.imageContainer}>
-          {profileImage ? (
-            <Image source={{ uri: profileImage }} style={styles.profileImage} />
-          ) : (
-            <Text style={styles.imagePlaceholder}>Tap to Take Photo</Text>
-          )}
-        </TouchableOpacity>
-
-        {/* Input Fields with Labels */}
-        <Text style={styles.label}>Mobile Number</Text>
-        <TextInput
-          style={styles.input}
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-          keyboardType="phone-pad"
-          maxLength={16}
-          placeholder="Enter Mobile Number"
-        />
-
-        <Text style={styles.label}>Enter Address</Text>
-        <TextInput
-          style={styles.input}
-          value={address}
-          onChangeText={setAddress}
-          placeholder="Enter Address"
-        />
-
-        <Text style={styles.label}>Enter Barangay</Text>
-        <TextInput
-          style={styles.input}
-          value={barangay}
-          onChangeText={setBarangay}
-          placeholder="Enter Barangay"
-        />
-
-        <Text style={styles.label}>Purok or Block</Text>
-        <TextInput
-          style={styles.input}
-          value={purok}
-          onChangeText={setPurok}
-          placeholder="Enter Purok or Block"
-        />
-
-        {/* Submit Button */}
-        <TouchableOpacity style={styles.button} onPress={handleFinishSetup}>
-          <Text style={styles.buttonText}>Finish Setup</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+    <View style={{ flex: 1 }}>
+      {idValidated ? (
+         <ScrollView contentContainerStyle={styles.container}>
+         <Text style={styles.header}>Face Verification</Text>
+         <Text style={styles.infoText}>Please verify your face to complete the process</Text>
+     
+         {loading ? (
+           <View style={styles.loadingContainer}>
+             <LottieView 
+               source={require('../assets/loading_animation.json')}
+               autoPlay 
+               loop 
+               style={styles.loadingAnimation} 
+             />
+             <Text style={styles.infoText}>Verifying face...</Text>
+           </View>
+         ) : (
+           <Animated.View style={[styles.buttonCard, { opacity: fadeAnim }]}>
+             <TouchableOpacity onPress={takeFacePhoto} style={styles.button}>
+               <LottieView source={require('../assets/face_animation.json')} autoPlay loop style={styles.lottie} />
+               <Text style={styles.buttonText}>Start Face Verification</Text>
+             </TouchableOpacity>
+           </Animated.View>
+         )}
+       </ScrollView>
+      ) : capturedImage ? (
+        <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.header}>Confirm ID Photo</Text>
+        
+        {loading ? (
+          // Show Lottie Animation while loading
+          <View style={styles.loadingContainer}>
+            <LottieView 
+              source={require('../assets/loading_animation.json')}
+              autoPlay 
+              loop 
+              style={styles.loadingAnimation} 
+            />
+            <Text style={styles.infoText}>Validating your ID...</Text>
+          </View>
+        ) : (
+          <>
+            <Image 
+              source={{ uri: capturedImage }}
+              style={styles.previewImage}
+            />
+            <View style={styles.buttonRow}>
+              <TouchableOpacity 
+                style={[styles.button, styles.secondaryButton]}
+                onPress={() => setCapturedImage(null)}
+              >
+                <Text style={styles.secondaryButtonText}>Retake</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.button, styles.primaryButton]}
+                onPress={validateCapturedID}
+                disabled={loading}
+              >
+                <Text style={styles.primaryButtonText}>Confirm & Validate</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </ScrollView>
+    ) : (
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.header}>Identity Verification</Text>
+        <Text style={styles.infoText}>Capture your ID first, then scan your face for verification.</Text>
+    
+        <Animated.View style={[styles.buttonCard, { opacity: fadeAnim }]}>
+          <TouchableOpacity onPress={openCameraForID} style={styles.button}>
+            <LottieView 
+              source={require('../assets/id_scanning.json')}
+              autoPlay 
+              loop 
+              style={styles.lottie} 
+            />
+            <Text style={styles.buttonText}>Capture ID</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </ScrollView>
+      )}
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  safeContainer: {
-    flex: 1,
+  infoText: { fontSize: 14, marginTop: 10, textAlign: 'center', color: '#666' },
+  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
+  container: { flexGrow: 1, padding: 20, alignItems: 'center', backgroundColor: '#f5f5f5' },
+  guideContainer: { 
+    padding: 15, 
+    backgroundColor: '#fff', 
+    borderRadius: 10, 
+    marginBottom: 20, 
+    marginTop: 20,
+    width: '100%',
+    elevation: 2,
+  },
+  guideTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 8, color: '#333' },
+  guideText: { fontSize: 14, color: '#555', marginBottom: 3 },
+  buttonCard: { 
     backgroundColor: 'white',
-  },
-  container: {
-    flex: 1,
-    padding: 60,
-    alignItems: 'center',
-  },
-  infoText: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20, // Adjust line spacing for better readability
-    marginBottom: 20,
-    fontFamily: 'Poppins_400Regular',
-  
-  },
-  imageContainer: {
-    width: 140,
-    height: 140,
-    borderRadius: 80,
-    backgroundColor: '#E8E8E8',
+    width: '100%', 
+    maxWidth: 350,
+    height: 140,   
+    borderRadius: 10, 
+    elevation: 3, 
+    marginTop: 15,
+    alignItems: 'center', 
     justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
     overflow: 'hidden',
   },
-  profileImage: {
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     width: '100%',
-    height: '100%',
-  },
-  imagePlaceholder: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-  },
-  label: {
-    width: '120%',
-    fontSize: 14,
-    fontFamily: 'Poppins_500Medium',
-    marginBottom: 5,
-    color: '#333',
-  },
-  input: {
-    width: '125%',
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
-    borderRadius: 25,
     paddingHorizontal: 20,
-    fontSize: 16,
-    color: '#333',
-    marginBottom: 15,
-    fontFamily: 'Poppins_400Regular',
+    marginTop: 20
   },
   button: {
-    backgroundColor: '#FF7143',
-    borderRadius: 25,
-    paddingVertical: 15,
-    width: '125 %',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 150
+  },
+  primaryButton: {
+    backgroundColor: '#007AFF',
+  },
+  secondaryButton: {
+    backgroundColor: '#ccc',
+  },
+  primaryButtonText: {
+    color: 'white',
+    fontWeight: 'bold'
+  },
+  secondaryButtonText: {
+    color: '#333',
+    fontWeight: 'bold'
+  },
+  previewImage: {
+    width: '100%',
+    height: 300,
+    marginVertical: 20,
+    borderRadius: 10,
+    resizeMode: 'contain'
+  },
+  lottie: { 
+    width: 90, 
+    height: 90 
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+    width: '100%',
+  },
+  loadingAnimation: { 
+    width: 70, 
+    height: 70,
   },
   buttonText: {
-    color: 'white',
     fontSize: 16,
-    fontFamily: 'Poppins_500Medium',
+    fontWeight: 'bold',
+    marginLeft: 10,
+    color: '#333',
+  },
+  message: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
   },
 });
-

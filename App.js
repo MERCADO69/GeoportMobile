@@ -6,6 +6,7 @@ import LoginScreen from './screens/Loginscreen';
 import Forgetpass from './screens/Forgetpass';
 import DebugScreen from './screens/ScreenDebugger';
 import LoadingScreen from './screens/LoadingScreen';
+import MobileNumberInput from "./screens/Redirect"
 
 const Stack = createStackNavigator();
 
@@ -17,6 +18,7 @@ function app() {
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         <Stack.Screen name="homepage" component={Maincontainer} options={{ headerShown: false }} />
         <Stack.Screen name="ForgetPass" component={Forgetpass} />
+        <Stack.Screen name="VerifyAccount" component={MobileNumberInput} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -6,6 +6,7 @@ import LottieView from 'lottie-react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ValidateId from "../Functions/validateImage";
 import ValidateFace from "../Functions/verifyImage";
+import UpdateUser from "../Functions/updateUser"
 
 export default function IdentityVerification() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -15,6 +16,7 @@ export default function IdentityVerification() {
   const [idValidated, setIdValidated] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
+  const [validationSuccess, setValidationSuccess] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -53,8 +55,6 @@ export default function IdentityVerification() {
   
       const imageUri = result.assets[0].uri;
       setCapturedImage(imageUri);
-  
-      // Automatically validate the captured image
       setLoading(true);
       try {
         const validation = await ValidateId(imageUri);
@@ -62,6 +62,8 @@ export default function IdentityVerification() {
           setCapturedID(imageUri);
           setIdValidated(true);
           setCapturedImage(null);
+
+          
           Alert.alert("Success", "ID validated successfully");
         } else {
           throw new Error(validation.error || "ID validation failed");
@@ -117,12 +119,13 @@ export default function IdentityVerification() {
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const imageUri = result.assets[0].uri;
         setProfileImage(imageUri);
-        setLoading(true); // Start animation
+        setLoading(true); 
   
         try {
           const response = await ValidateFace(capturedID, imageUri);
           if (response?.success) {
-            Alert.alert("Success", "Verification successful!");
+            setValidationSuccess(true)
+            handleUpdateUserStatus(imageUri)
           } else {
             Alert.alert(
               "Verification Failed", 
@@ -138,7 +141,7 @@ export default function IdentityVerification() {
       console.error("Error capturing face:", error);
       Alert.alert("⚠️ Error", "Failed to capture face photo. Please try again.");
     } finally {
-      setLoading(false); // Stop animation
+      setLoading(false); 
     }
   };
   
@@ -156,8 +159,26 @@ export default function IdentityVerification() {
     );
   }
 
+
+  async function handleUpdateUserStatus(imageUri){
+
+    if(!imageUri){
+      console.error('no profile image')
+      return false
+    }
+    Alert.alert('Processing','Running the update function')
+    let updateStatus = await UpdateUser.UpdateUserStatus(imageUri);
+
+    if (updateStatus.successfull) {
+      Alert.alert("Success", "User status updated successfully!");
+  } else {
+      Alert.alert("Error", updateStatus.message);
+  }
+  }
+
   return (
     <View style={{ flex: 1 }}>
+      
       {idValidated ? (
          <ScrollView contentContainerStyle={styles.container}>
          <Text style={styles.header}>Face Verification</Text>
@@ -184,10 +205,8 @@ export default function IdentityVerification() {
        </ScrollView>
       ) : capturedImage ? (
         <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.header}>Confirm ID Photo</Text>
-        
+  
         {loading ? (
-          // Show Lottie Animation while loading
           <View style={styles.loadingContainer}>
             <LottieView 
               source={require('../assets/loading_animation.json')}
@@ -198,27 +217,22 @@ export default function IdentityVerification() {
             <Text style={styles.infoText}>Validating your ID...</Text>
           </View>
         ) : (
-          <>
-            <Image 
-              source={{ uri: capturedImage }}
-              style={styles.previewImage}
-            />
-            <View style={styles.buttonRow}>
-              <TouchableOpacity 
-                style={[styles.button, styles.secondaryButton]}
-                onPress={() => setCapturedImage(null)}
-              >
-                <Text style={styles.secondaryButtonText}>Retake</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.button, styles.primaryButton]}
-                onPress={validateCapturedID}
-                disabled={loading}
-              >
-                <Text style={styles.primaryButtonText}>Confirm & Validate</Text>
-              </TouchableOpacity>
-            </View>
-          </>
+          <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.header}>Identity Verification</Text>
+          <Text style={styles.infoText}>Capture your ID first, then scan your face for verification.</Text>
+      
+          <Animated.View style={[styles.buttonCard, { opacity: fadeAnim }]}>
+            <TouchableOpacity onPress={openCameraForID} style={styles.button}>
+              <LottieView 
+                source={require('../assets/id_scanning.json')}
+                autoPlay 
+                loop 
+                style={styles.lottie} 
+              />
+              <Text style={styles.buttonText}>Capture ID</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </ScrollView>
         )}
       </ScrollView>
     ) : (

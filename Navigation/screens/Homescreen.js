@@ -132,11 +132,6 @@ export default function Homescreen() {
    }
    
 
-    
-
-  if (!fontsLoaded) {
-    return <Text>Loading...</Text>;
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -251,7 +246,7 @@ export default function Homescreen() {
                   <Text style={[styles.title, { color: '#FA4032' }]}>{report.TypeOfReport}</Text>
                   <Text style={[styles.subtitle, styles.cardText]}>{report.status}</Text>
                   <Text style={[styles.location, styles.cardText]}>
-                    {reversedLocation ? `${reversedLocation.barangay}, ${reversedLocation.city}` : "Fetching location..."}
+                    {reversedLocation ? `${reversedLocation.barangay} ${reversedLocation.city}` : "Fetching location..."}
                   </Text>
                 </View>
               </View>
@@ -514,6 +509,7 @@ const styles = StyleSheet.create({
   norecent: {
     fontFamily: 'Poppins_400Regular',
     paddingLeft: 24,
+    marginStart:15,
     fontSize: 14,
     color: '#555', 
   },

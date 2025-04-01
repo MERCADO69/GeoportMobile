@@ -12,10 +12,10 @@ export default async function GetReverseLocation(latitude, longitude) {
 
         if (geocode) {
             return {
-                barangay: geocode.district || "Loading",
-                city: geocode.city || "Loading",
-                region: geocode.region || "Loading",
-                country: geocode.country || "Loading",
+                barangay: geocode.district || " ",
+                city: geocode.city || " ",
+                region: geocode.region || " ",
+                country: geocode.country || " ",
             };
         } else {
             return { barangay: "Not found", city: "Not found" };

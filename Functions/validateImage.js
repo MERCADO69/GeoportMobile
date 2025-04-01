@@ -2,8 +2,6 @@ import axios from "axios";
 import * as FileSystem from 'expo-file-system';
 import { Platform } from "react-native";
 import { APP_FACE_DETECTION_API_KEY, SERVER_IP } from "@env";
-import CompreFaceServices from "../utils/Functions/compreFaceConfigurations"
-
 
 export default async function ValidateId(imageUri) {
 console.log('The image uri is ',imageUri)

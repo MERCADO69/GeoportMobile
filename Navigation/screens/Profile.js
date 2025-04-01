@@ -1,7 +1,7 @@
 import { Poppins_400Regular, Poppins_500Medium } from '@expo-google-fonts/poppins';
 import React from 'react';
 import  { useState,useEffect ,useCallback} from 'react';
-import { View, Text, StyleSheet, SafeAreaView,ScrollView, TouchableOpacity, RefreshControl,Alert } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView,ScrollView, TouchableOpacity, RefreshControl,Alert,Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import GetUserData from "../../Functions/getUserData";
 import { auth } from "../../firebaseConfig";
@@ -89,9 +89,23 @@ export default function Morescreen({ navigation }) {
             }
          >
       <View style={styles.header}>
-        <View style={styles.profileContainer}>
-          {/* Add your profile image inside this container later */}
+      <View style={styles.profileContainer}>
+            {data.image ? (
+                <Image 
+                    source={{ uri: data.image }} 
+                    style={styles.profileImage} 
+                    resizeMode="cover" 
+                    onError={(e) => console.log("Image Load Error:", e.nativeEvent.error)}
+                />
+            ) : (
+                <Image 
+                    source={{ uri: "https://res.cloudinary.com/douasd2ik/image/upload/v1741259073/default_profile_m0o0wm.avif" }} 
+                    style={styles.profileImage} 
+                    resizeMode="cover"
+                />
+            )}
         </View>
+
         <Text style={styles.Username}>{data.name || 'Loading ...'}</Text>
         <Text style={[styles.Usergmail]}>{data.email || 'Loading ...'}</Text>
         <View style={styles.locationContainer}>
@@ -344,5 +358,11 @@ const styles = StyleSheet.create({
     marginTop: -10,
     marginBottom: 10,
 
-  }
+  },profileImage: {
+    width: 100,  // Required width
+    height: 100, // Required height
+    borderRadius: 50, // Optional: Makes it circular
+    backgroundColor: '#e0e0e0' // Placeholder if image fails to load
+}
+
 });

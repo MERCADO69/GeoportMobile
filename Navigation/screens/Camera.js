@@ -10,6 +10,7 @@ import uploadToCloudinary from "../../Functions/cloudinaryUploader"
 import GetUserData from "../../Functions/getUserData"
 import useLiveLocation from "../../Functions/getCurrentLocation";
 import GuideModal from "../modals/guideModal"
+import ModalList from "../modals/modalMaker"
 
 export default function Camera() {
   const [flashOn, setFlashOn] = useState(false);

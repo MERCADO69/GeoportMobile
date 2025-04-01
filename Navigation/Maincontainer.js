@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect,useState } from 'react';
+import { useEffect,useState,useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -24,7 +24,7 @@ const MoreName = 'More';
 const Tab = createBottomTabNavigator();
 
 export default function Maincontainer() {
-
+    
     const currentLocation = useLiveLocation(); 
     const [data,setData] = useState('')
 

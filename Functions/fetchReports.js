@@ -13,7 +13,7 @@ export default async function fetchReports(setReportData) {
     try {
         let token = await user.getIdToken();
         const url = `ws://${SERVER_IP}:${SERVER_PORT}/${FETCH_REPORT}?token=${token}`;
-        console.log('url for fetching reports ',url)
+      
         if (!socket || socket.readyState === WebSocket.CLOSED) {
             socket = new WebSocket(url);
         

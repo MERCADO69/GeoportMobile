@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, Text ,StatusBar} from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, Text, StatusBar } from 'react-native';
+import { Polyline } from 'react-native-maps';
+import polyline from "@mapbox/polyline";
 import MapView, { UrlTile, Marker } from 'react-native-maps';
 import SearchIcon from '../../Images/search.svg';
 import useLiveLocation from '../../Functions/getCurrentLocation';
-import GetUserData from "../../Functions/getUserData"
+import GetUserData from "../../Functions/getUserData";
 import fetchReports from "../../Functions/fetchReports";
+import RoutingFunction from "../../Functions/routingFunction"
+import ModalList from "../modals/modalMaker"
 
 export default function MapsScreen() {
   const mapRef = useRef(null);  
@@ -12,41 +16,93 @@ export default function MapsScreen() {
   const [searchText, setSearchText] = useState('');
   const [reportData, setReportData] = useState([]);
   const location = useLiveLocation(); 
-  const [status,setStatus] = useState('')
+  const [status, setStatus] = useState('');
+  const [route,setRoute] = useState('')
+  const [reroute,setReroute] = useState('')
   const [initialRegion, setInitialRegion] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const routingFunction = new RoutingFunction();
 
-  // Set initial region only ONCE when location is available
-  useEffect(() => {
-    if (location && !initialRegion) {
-      setInitialRegion({
-        latitude: location.latitude,
-        longitude: location.longitude,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      });
-    }
-  }, [location]);
+
 
   useEffect(() => {
-    fetchReports(setReportData);
-  }, []);
-
-  
-
-  useEffect(()=>{
-      async function FetchData() {  
-          const data = await GetUserData()
-        if(data){
-          let status = data.data?.status
-          setStatus(status)
+    async function fetchData() {
+      try {
+        if (location && !initialRegion) {
+          setInitialRegion({
+            latitude: location.latitude,
+            longitude: location.longitude,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          });
         }
+
+        await fetchReports(setReportData);
+        
+        const data = await GetUserData();
+        if (data) {
+          setStatus(data.data?.status);
+        }
+      } catch (error) {
+        console.error("Error fetching data: ", error);
       }
-      FetchData()
-  },[])
+    }
+
+    fetchData();
+  }, [location]); 
+
+
+  async function handleRerouting(destinationLocation) {
+    console.log('handle request rerouting is running');
+    let startLocation = { latitude: location.latitude, longitude: location.longitude };
+    let endLocation = { latitude: destinationLocation.latitude, longitude: destinationLocation.longitude };
+    try {
+      const data = await routingFunction.requestRoute(startLocation, endLocation);
+      
+      if (data && data.routes && data.routes.length > 0) {
+        const encodedPolyline = data.routes[0].geometry;
+        const decodedCoordinates = polyline.decode(encodedPolyline).map(coord => ({
+          latitude: coord[0],
+          longitude: coord[1]
+        }));
+
+        setRoute(decodedCoordinates);
+      } else {
+        console.warn('No route found');
+      }
+    } catch (error) {
+      console.error('Error fetching route:', error);
+    }
+  }
+  
+  
+function handleCloseModal(){
+  setShowModal(false)
+}
+function handleOpenModal(){
+  if(!isSmartTraveling){
+    setIsSmartTraveling(true);
+    setShowModal(true)
+  }else{
+    setIsSmartTraveling(false);
+    setSelectedLocation(null);
+    setRoute([]); 
+  }
+}
+
+const onMapPress = (e) => {
+  if (!isSmartTraveling) return;
+  const { latitude, longitude } = e.nativeEvent.coordinate;
+  setSelectedLocation({ latitude, longitude });
+  let destinationLocation = { latitude, longitude };
+  handleRerouting(destinationLocation);
+};
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Search Bar */}
+      {ModalList.routingPromptModal(showModal, handleCloseModal)}
+
       <View style={styles.searchContainer}>
         <View style={styles.iconContainer}>
           <SearchIcon width={25} height={35} />
@@ -62,20 +118,18 @@ export default function MapsScreen() {
 
       {/* MapView Filling Entire Screen */}
       {initialRegion && (
-        <MapView
-          ref={mapRef}
-          style={styles.map} // ✅ Extends map fully
+        <MapView ref={mapRef} style={styles.map} 
           initialRegion={initialRegion || {
             latitude: 7.9266,
             longitude: 125.0876,
             latitudeDelta: 0.05,
             longitudeDelta: 0.05,
           }}
+          onPress={onMapPress}
         >
           <UrlTile urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png" maximumZ={19} />
 
-          {/* Display Reports */}
-          {reportData.map((report, index) => (
+          {!isSmartTraveling && reportData.map((report, index) => (
             <Marker
               key={index}
               coordinate={{
@@ -87,14 +141,26 @@ export default function MapsScreen() {
               pinColor={report.type.toLowerCase() === 'road defects' ? 'red' : 'blue'}
             />
           ))}
+
+
+  {selectedLocation && (  <Marker coordinate={selectedLocation} title="Selected Location" description="You selected this location" pinColor="green" />)}
+
+        {route.length > 0 && (
+            <Polyline  coordinates={route} strokeColor="blue" strokeWidth={4} />
+          )}
         </MapView>
       )}
 
       {/* Status Message */}
       {isSmartTraveling && <Text style={styles.statusMessage}>You are now smart traveling</Text>}
+  
+  
+  
+    
+
 
       {/* Button Positioned Over the Map */}
-      <TouchableOpacity style={styles.button} onPress={() => setIsSmartTraveling(!isSmartTraveling)}>
+      <TouchableOpacity style={styles.button} onPress={() => handleOpenModal()}>
         <Text style={styles.buttonText}>
           {isSmartTraveling ? 'Disable Smart Rerouting' : 'Enable Smart Rerouting'}
         </Text>
@@ -144,6 +210,16 @@ const styles = StyleSheet.create({
     left: '5%',
     right: '5%',
     backgroundColor: '#FA812F',
+    borderRadius: 10,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },  geotagButton: {
+    position: 'absolute',
+    bottom: 80, // Adjust position above the rerouting button
+    left: '5%',
+    right: '5%',
+    backgroundColor: '#4CAF50', // Green color for geotagging
     borderRadius: 10,
     paddingVertical: 15,
     paddingHorizontal: 20,

@@ -13,7 +13,6 @@ export default class RoutingFunction{
             let endLongitude = location.end?.longitude;
 
             let url = `http://${SERVER_IP}:5000/route/v1/driving/${startLongitude},${startLatitude};${endLongitude},${endLatitude}?overview=full`;
-          console.log('The url is ',url)
             const response = await axios.get(url, { timeout: 30000 })
 
             if (response.data && response.data.routes) {

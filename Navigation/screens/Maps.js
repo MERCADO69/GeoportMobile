@@ -9,6 +9,8 @@ import GetUserData from "../../Functions/getUserData";
 import fetchReports from "../../Functions/fetchReports";
 import RoutingFunction from "../../Functions/routingFunction"
 import ModalList from "../modals/modalMaker"
+import { getDistance as geolibGetDistance } from 'geolib';
+
 
 export default function MapsScreen() {
   const mapRef = useRef(null);  
@@ -18,11 +20,11 @@ export default function MapsScreen() {
   const location = useLiveLocation(); 
   const [status, setStatus] = useState('');
   const [route,setRoute] = useState('')
-  const [reroute,setReroute] = useState('')
   const [initialRegion, setInitialRegion] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const routingFunction = new RoutingFunction();
+  const prevReportData = useRef([]);
 
 
 
@@ -53,33 +55,117 @@ export default function MapsScreen() {
   }, [location]); 
 
 
-  async function handleRerouting(destinationLocation) {
-    console.log('handle request rerouting is running');
-    let startLocation = { latitude: location.latitude, longitude: location.longitude };
-    let endLocation = { latitude: destinationLocation.latitude, longitude: destinationLocation.longitude };
-    try {
-      const data = await routingFunction.requestRoute(startLocation, endLocation);
-      
-      if (data && data.routes && data.routes.length > 0) {
-        const encodedPolyline = data.routes[0].geometry;
-        const decodedCoordinates = polyline.decode(encodedPolyline).map(coord => ({
-          latitude: coord[0],
-          longitude: coord[1]
-        }));
 
-        setRoute(decodedCoordinates);
-      } else {
-        console.warn('No route found');
-      }
-    } catch (error) {
-      console.error('Error fetching route:', error);
+  useEffect(() => {
+    if (selectedLocation && reportData.length > 0) {
+        const isChanged = JSON.stringify(prevReportData.current) !== JSON.stringify(reportData);
+
+        if (isChanged) {
+            handleRerouting(selectedLocation);
+            prevReportData.current = reportData; // Update previous data
+        }
     }
+}, [reportData]);
+
+
+
+
+async function handleRerouting(destinationLocation) {
+  let startLocation = { latitude: location.latitude, longitude: location.longitude };
+  let endLocation = { latitude: destinationLocation.latitude, longitude: destinationLocation.longitude };
+
+  try {
+    const data = await routingFunction.requestRoute(startLocation, endLocation);
+    const repairedRoads = await getUnpassableRoadCoordinates();
+
+    if (data && data.routes && data.routes.length > 0) {
+      const encodedPolyline = data.routes[0].geometry;
+      const decodedCoordinates = polyline.decode(encodedPolyline).map(coord => ({
+        latitude: coord[0],
+        longitude: coord[1]
+      }));
+
+      const rerouteNeeded = checkForRepairedRoads(decodedCoordinates, repairedRoads);
+
+      if (rerouteNeeded) {
+        console.log('Repair detected on this route. Finding an alternative route...');
+        const alternativeRoute = await findAlternativeRoute(startLocation, endLocation);
+        setRoute(alternativeRoute);
+      } else {
+        setRoute(decodedCoordinates);
+      }
+    } else {
+      console.warn('No route found. Response data:', data);
+      alert('No route found from the current location to the destination.');
+    }
+  } catch (error) {
+    console.error('Error fetching route:', error);
+    alert('Error fetching route. Please try again later.');
   }
+}
+
+  
+  function checkForRepairedRoads(routeCoordinates, repairedRoads) {
+    for (let i = 0; i < routeCoordinates.length - 1; i++) {
+      const segmentStart = routeCoordinates[i];
+      const segmentEnd = routeCoordinates[i + 1];
+      
+      for (let repairedRoad of repairedRoads) {
+        if (isSegmentNearRepair(segmentStart, segmentEnd, repairedRoad)) {
+          return true; 
+        }
+      }
+    }
+    return false; 
+  }
+  
+  function isSegmentNearRepair(segmentStart, segmentEnd, repairedRoad) {
+    const repairThreshold = 0.001;
+  
+    if (!Array.isArray(repairedRoad)) {
+      repairedRoad = [repairedRoad];
+    }
+  
+    return repairedRoad.some(repairPoint => {
+      const distanceStart = geolibGetDistance(segmentStart, repairPoint);
+      const distanceEnd = geolibGetDistance(segmentEnd, repairPoint);
+      return distanceStart < repairThreshold || distanceEnd < repairThreshold;
+    });
+  }
+  
+  
+  
+  
+   async function findAlternativeRoute(startLocation, endLocation) {
+    const data = await routingFunction.requestRoute(startLocation, endLocation, { avoidRepairs: true });
+    const encodedPolyline = data.routes[0].geometry;
+    const decodedCoordinates = polyline.decode(encodedPolyline).map(coord => ({
+      latitude: coord[0],
+      longitude: coord[1]
+    }));
+    return decodedCoordinates;
+  }
+  
+
+  async function getUnpassableRoadCoordinates() {
+    const coordinates = reportData.map(report => ({
+      latitude: parseFloat(report.latitude),
+      longitude: parseFloat(report.longitude)
+    }));
+  
+    console.log("Coordinates array:", coordinates); 
+    return coordinates; 
+  }
+  
+  
+  
+
   
   
 function handleCloseModal(){
   setShowModal(false)
 }
+
 function handleOpenModal(){
   if(!isSmartTraveling){
     setIsSmartTraveling(true);

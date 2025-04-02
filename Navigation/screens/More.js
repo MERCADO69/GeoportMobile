@@ -3,6 +3,7 @@ import {
   View,Text,StyleSheet,SafeAreaView,TouchableOpacity,Switch,ScrollView,} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
+import LogoutFunction from "../../Functions/logoutFunction"
 
 const SettingsScreen = ({ navigation }) => {
   const [settings, setSettings] = useState({
@@ -27,6 +28,11 @@ const SettingsScreen = ({ navigation }) => {
       ...prevState,
       [key]: !prevState[key],
     }));
+  };
+
+  const handleLogout = async () => {
+    await LogoutFunction();
+    navigation.navigate("Login");
   };
 
   return (
@@ -97,7 +103,7 @@ const SettingsScreen = ({ navigation }) => {
                   <Text style={styles.settingDescription}>Update your phone number</Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => navigation.navigate('PersonalInfo')}>
+              <TouchableOpacity onPress={() => navigation.navigate('MoreName')}>
                 <Ionicons name="chevron-forward" size={20} color="#CCC" />
               </TouchableOpacity>
             </View>
@@ -171,7 +177,7 @@ const SettingsScreen = ({ navigation }) => {
                   <Text style={styles.settingDescription}>Get help or contact support</Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => navigation.navigate('Help')}>
+              <TouchableOpacity onPress={() => navigation.navigate('HelpAndSupport')}>
                 <Ionicons name="chevron-forward" size={20} color="#CCC" />
               </TouchableOpacity>
             </View>
@@ -184,14 +190,14 @@ const SettingsScreen = ({ navigation }) => {
                   <Text style={styles.settingDescription}>Version 1.0.0</Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => navigation.navigate('About')}>
+              <TouchableOpacity onPress={() => navigation.navigate('AboutGeoport')}>
                 <Ionicons name="chevron-forward" size={20} color="#CCC" />
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Log Out Button */}
-          <TouchableOpacity style={styles.logoutButton} onPress={() => console.log('Logout pressed')}>
+          <TouchableOpacity style={styles.logoutButton}  onPress={async () => handleLogout()}>
             <Ionicons name="log-out-outline" size={27} color="#FF4444" />
             <Text style={styles.logoutText}>Log Out</Text>
           </TouchableOpacity>

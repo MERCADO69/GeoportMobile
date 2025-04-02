@@ -31,7 +31,7 @@ const AboutGeoportscreen = ({ navigation }) => {
           <Text style={styles.sectionTitle}>App Overview</Text>
           <View style={styles.card}>
             <Text style={styles.cardText}>
-              Geoport is a community-driven app designed to make roads safer and more navigable. Report road incidents, car collisions, and infrastructure issues such as potholes or repairs using Geoport's machine learning features.
+            Geoport is a community-driven app designed to enhance road safety and navigation. With Geoport, users can report road incidents, car collisions, and infrastructure issues like potholes or ongoing repairs, all while benefiting from the app’s advanced machine learning features to ensure faster, more accurate reporting.
             </Text>
           </View>
         </View>
@@ -112,7 +112,7 @@ const AboutGeoportscreen = ({ navigation }) => {
                 </View> 
           <View style={styles.card}>
             <Text style={styles.cardText}>
-            Geoport was developed by passionate by a team of IT Students from BuKSU dedicated to making our roads safer and improving city infrastructure. together, we aim to empower communities with tools for a better future.
+            Geoport was developed by a dedicated team of IT students from BuKSU, driven by a passion for enhancing road safety and improving city infrastructure. Together, we aim to empower communities with innovative tools for a brighter, more sustainable future.
             </Text>
               </View>
                </View>

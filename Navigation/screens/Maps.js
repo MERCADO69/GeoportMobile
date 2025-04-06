@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, Text, StatusBar } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, Text, StatusBar,Alert } from 'react-native';
 import { Polyline } from 'react-native-maps';
 import polyline from "@mapbox/polyline";
 import MapView, { UrlTile, Marker } from 'react-native-maps';
@@ -19,7 +19,7 @@ export default function MapsScreen() {
   const [reportData, setReportData] = useState([]);
   const location = useLiveLocation(); 
   const [status, setStatus] = useState('');
-  const [route,setRoute] = useState('')
+  const [route,setRoute] = useState([])
   const [initialRegion, setInitialRegion] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -88,12 +88,23 @@ async function handleRerouting(destinationLocation) {
       const rerouteNeeded = checkForRepairedRoads(decodedCoordinates, repairedRoads);
 
       if (rerouteNeeded) {
-        console.log('Repair detected on this route. Finding an alternative route...');
+        console.log("Trying to reroute...");
+        Alert.alert("Route adjusted", "We adjusted your route due to reported road issues.");
         const alternativeRoute = await findAlternativeRoute(startLocation, endLocation);
-        setRoute(alternativeRoute);
+        if (alternativeRoute && alternativeRoute.length > 0) {
+          console.log("Alternative route:", alternativeRoute);
+          setRoute([]); 
+          setTimeout(() => {
+            setRoute(alternativeRoute);
+          }, 50);
+        } else {
+          console.warn("No alternative route found.");
+        }
       } else {
+        console.log("No repair on route. Using default route.");
         setRoute(decodedCoordinates);
       }
+      
     } else {
       console.warn('No route found. Response data:', data);
       alert('No route found from the current location to the destination.');
@@ -120,8 +131,8 @@ async function handleRerouting(destinationLocation) {
   }
   
   function isSegmentNearRepair(segmentStart, segmentEnd, repairedRoad) {
-    const repairThreshold = 0.001;
-  
+    const repairThreshold = 20;
+
     if (!Array.isArray(repairedRoad)) {
       repairedRoad = [repairedRoad];
     }
@@ -187,6 +198,7 @@ const onMapPress = (e) => {
 
   return (
     <SafeAreaView style={styles.container}>
+
       {ModalList.routingPromptModal(showModal, handleCloseModal)}
 
       <View style={styles.searchContainer}>

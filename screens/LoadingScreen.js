@@ -17,14 +17,11 @@ export default function LoadingScreen() {
   const progressWidth = useSharedValue(0);
 
   useEffect(() => {
-    // Text Fade-In & Scale-Up Effect
     textOpacity.value = withTiming(1, { duration: 1200 });
     textScale.value = withTiming(1, { duration: 1200 });
 
-    // Progress Bar Animation
     progressWidth.value = withTiming(250, { duration: 3000 });
 
-    // Redirect after animation
     setTimeout(() => {
       user ? navigation.replace("homepage") : navigation.replace("Login");
     }, 4000);

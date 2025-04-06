@@ -16,7 +16,6 @@ export default class RoutingFunction{
             const response = await axios.get(url, { timeout: 30000 })
 
             if (response.data && response.data.routes) {
-               console.log('the response data is',response.data)
                 return response.data
               } else {
                 console.error('No route data available');

@@ -9,13 +9,14 @@ export default async function FetchReportedReports(){
   const user  = auth.currentUser;
   let id = user.uid;
   const token = await user.getIdToken();
-
+  
   if(!id || !token){
     console.log('id and token null');
     return true;
   }
+
+  console.log('tokeeeeeeeeeeeeeeeeeeeeennnnnnnnnnnnn',token)
   const url = `http://${SERVER_IP}:${SERVER_PORT}/${FETCH_REPORTED_REPORTS}?id=${id}`
-  const ngrok_url = `${NGROK_URL}/${FETCH_REPORTED_REPORTS}?id=${id}`;
   
  try{
  const response = await axios.get(url,{

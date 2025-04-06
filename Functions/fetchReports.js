@@ -5,6 +5,7 @@ let socket = null;
 
 export default async function fetchReports(setReportData) {
     const user = auth.currentUser;
+    
     if (!user) {
         console.error('User not logged in');
         return;

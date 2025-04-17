@@ -9,7 +9,11 @@ import LoadingScreen from './screens/LoadingScreen';
 import MobileNumberInput from "./screens/Redirect"
 import AboutGeoportscreen from "./Navigation/screens/AboutGeoport"
 import HelpSupportScreen from "./Navigation/screens/Helpandsupport"
-
+import NotificationSettingScreen from "./Navigation/screens/Notifsettings"
+import UpdatePhoneScreen from "./Navigation/screens/PhoneUpdate"
+import ReportsHistoryScreen from "./Navigation/screens/History"
+import UpdateEmail from "./Navigation/screens/Emailupdate"
+import UpdateInformationScreen from "./Navigation/screens/UpdateInfo"
 const Stack = createStackNavigator();
 
 function app() {
@@ -23,6 +27,11 @@ function app() {
         <Stack.Screen name="VerifyAccount" component={MobileNumberInput} />
         <Stack.Screen name="AboutGeoport" component={AboutGeoportscreen} options={{ headerShown: false }}  />
         <Stack.Screen name="HelpAndSupport" component={HelpSupportScreen} options={{ headerShown: false }}  />
+        <Stack.Screen name="NotificationSettings" component={NotificationSettingScreen} options={{ headerShown: false }}  />
+        <Stack.Screen name="UpdatePhone" component={UpdatePhoneScreen} options={{ headerShown: false }}  />
+        <Stack.Screen name="ReportsHistory" component={ReportsHistoryScreen} options={{ headerShown: false }}  />
+        <Stack.Screen name="UpdateEmail" component={UpdateEmail} options={{ headerShown: false }}  />
+        <Stack.Screen name="UpdateUserInfo" component={UpdateInformationScreen} options={{ headerShown: false }}  />
       </Stack.Navigator>
     </NavigationContainer>
   );

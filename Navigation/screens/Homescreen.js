@@ -1,7 +1,7 @@
-import  { useState,useEffect  } from 'react';
+import  { useState,useEffect,useCallback } from 'react';
 import { Ionicons } from 'react-native-vector-icons';
 import { Poppins_500Medium, Poppins_700Bold, Poppins_600SemiBold, Poppins_400Regular } from '@expo-google-fonts/poppins';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, SafeAreaView, TextInput, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, SafeAreaView, TextInput, ScrollView,RefreshControl} from 'react-native';
 import { useFonts } from '@expo-google-fonts/poppins';
 import SearchIcon from '../../Images/search.svg'; 
 import GetUserData from "../../Functions/getUserData";
@@ -26,26 +26,37 @@ export default function Homescreen() {
      const [isModalVisible, setIsModalVisible] = useState(false);
      const [selectedImage, setSelectedImage] = useState(null); 
      const navigation = useNavigation();
+    const [refreshing, setRefreshing] = useState(false);
   
-  useEffect(()=>{
+
+  useEffect(() => {
+    async function FetchAllData(){
+        await Promise.all([
+          fetchedData(),
+          reverse(),
+          fetch(),
+          fetchLocations()
+        ])
+    }  
+  FetchAllData()
+ },[])
+
+
     async function fetchedData(){
       const fetch = await GetUserData()
       if(fetch){
         setUserData(fetch.data)
-      } }
-    fetchedData()
-  },[])
+      }
+    }
+ 
   
-   useEffect(()=>{
-       async function reverse() {
+    async function reverse(){
         if(location){
           const location_data = await GetReverseLocation(location.latitude,location.longitude)
           setAddress(location_data);
-        } }
-       reverse()
-      },[location])
+        }
+      }
   
-    useEffect(()=>{
       async function fetch(){
         const reportedReports = await FetchReportedReports();
           if(reportedReports){
@@ -75,10 +86,7 @@ export default function Homescreen() {
             }
           }
       }
-      fetch()
-    },[])
 
-    useEffect(() => {
       async function fetchLocations() {
         const updatedLocations = {};
         const locationsToFetch = Object.values(listofReports)
@@ -108,7 +116,6 @@ export default function Homescreen() {
       if (listofReports && Object.keys(listofReports).length > 0) {
         fetchLocations();
       }
-    }, [listofReports]);
     
     
 
@@ -130,12 +137,28 @@ export default function Homescreen() {
       if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
       return "Just now";
    }
-   
+    
+    const onRefresh = useCallback(async () => {
+      setRefreshing(true);
+          try{
+          await Promise.all([
+                fetchedData(),
+            reverse(),
+              fetch(),
+              fetchLocations()
+        ])
+      }catch(error){
+          Alert.alert("Error", "Unable to refresh data. Please try again later.");
+        }finally{
+          setRefreshing(false);
+        }
+    },[])
+
 
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Top Box */}
+      <ScrollView  refreshControl={ <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
       <View style={styles.topBox} />
 
     <SafeAreaView>
@@ -262,12 +285,8 @@ export default function Homescreen() {
 
               )}
 
-
-
 </ScrollView>
-
-
-
+</ScrollView>
     </SafeAreaView>
   );
 }

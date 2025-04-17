@@ -4,21 +4,23 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, Dimensions,
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth } from "../firebaseConfig";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged  } from "firebase/auth";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import loginFunction from "../Functions/loginFunction";
-import { useGoogleAuth } from "../Functions/continueWithGoogle";
+import useGoogleAuth  from "../Functions/continueWithGoogle";
 import Mylogo from "../Images/Geo.svg";
 import Tagline from "../Images/Sibya.svg";
 import FB from "../Images/facebook.svg";
 import ContinueG from "../Images/continue.svg";
 import Either from "../Images/choices.svg";
+import * as WebBrowser from "expo-web-browser";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen({ navigation }) {
-  const { promptAsync } = useGoogleAuth();
   const { width, height } = Dimensions.get("window");
   const insets = useSafeAreaInsets();
-  
+  const { promptAsync } = useGoogleAuth(); 
   const { register, handleSubmit, setValue, watch } = useForm({ mode: "onChange" });
   
   const email = watch("email", "");
@@ -31,7 +33,6 @@ export default function LoginScreen({ navigation }) {
     try {
       const tryToLogin = await loginFunction(data.email, data.password);
       if (tryToLogin && tryToLogin.email) { 
-        console.log("Login successful:", tryToLogin);
         navigation.navigate("homepage"); 
       }  else {
         Alert.alert("Error", "Invalid login credentials.");
@@ -41,14 +42,10 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        navigation.replace("homepage");
-      }
-    });
-    return () => unsubscribe();
-  }, []);
+  function handleSignup(){
+
+  }
+
 
   return (
     <View style={[styles.container, { paddingBottom: Platform.OS === "android" ? 0 : insets.bottom }]}> 
@@ -97,12 +94,12 @@ export default function LoginScreen({ navigation }) {
             <TouchableOpacity style={styles.authButton} onPress={() => {}}>
               <FB width={40} height={40} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.authButton} onPress={promptAsync}>
+            <TouchableOpacity style={styles.authButton}  onPress={() =>handleSignup() }>
               <ContinueG width={40} height={40} />
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity onPress={() => navigation.navigate("Forgetpass")}>
+          <TouchableOpacity onPress={() => Alert.alert("Feature not available yet")}>
             <Text style={styles.forgotPassword}>Forgot Password?</Text>
           </TouchableOpacity>
         </SafeAreaView>

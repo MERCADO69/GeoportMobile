@@ -4,7 +4,6 @@ import { Platform } from "react-native";
 import { APP_FACE_DETECTION_API_KEY, SERVER_IP } from "@env";
 
 export default async function ValidateId(imageUri) {
-console.log('The image uri is ',imageUri)
   try {
 
     if(!imageUri){

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import {
-  View,Text,StyleSheet,SafeAreaView,TouchableOpacity,Switch,ScrollView,} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View,Text,StyleSheet,SafeAreaView,TouchableOpacity,Switch,ScrollView,Alert} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 import LogoutFunction from "../../Functions/logoutFunction"
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const SettingsScreen = ({ navigation }) => {
   const [settings, setSettings] = useState({
@@ -13,27 +14,50 @@ const SettingsScreen = ({ navigation }) => {
     cameraAccess: false,
   });
 
-  const [fontsLoaded] = useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
-  });
-
-  if (!fontsLoaded) {
-    return <Text>Loading...</Text>;
-  }
-
-  const toggleSwitch = (key) => {
-    setSettings((prevState) => ({
-      ...prevState,
-      [key]: !prevState[key],
-    }));
-  };
 
   const handleLogout = async () => {
     await LogoutFunction();
     navigation.navigate("Login");
   };
+
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const saved = await AsyncStorage.getItem('userSettings');
+        if (saved) {
+          setSettings(JSON.parse(saved));
+        }
+      } catch (e) {
+        console.error("Failed to load settings", e);
+      }
+    };
+    loadSettings();
+  }, []);
+
+
+
+  const toggleSwitch = (key, newValue) => {
+    try {
+      const updatedSettings = { 
+        ...settings,
+        [key]: newValue,
+      };
+      setSettings(updatedSettings);       
+      saveSettings(updatedSettings);
+    } catch (error) {
+      console.error('Error in toggling switch:', error);
+    }
+  };
+
+  const saveSettings = async (newSettings) => {
+    try {
+      await AsyncStorage.setItem('userSettings', JSON.stringify(newSettings));
+    } catch (e) {
+     Alert.alert("Something went wrong","Failed to save settings", e);
+    }
+  };
+
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -61,7 +85,7 @@ const SettingsScreen = ({ navigation }) => {
               </View>
               <Switch
                 value={settings.smartRerouting}
-                onValueChange={() => toggleSwitch('smartRerouting')}
+                onValueChange={() => toggleSwitch('smartRerouting', !settings.smartRerouting)}
                 trackColor={{ false: '#E5E5E5', true: '#FF7F00' }}
                 thumbColor="#FFFFFF"
               />
@@ -69,7 +93,7 @@ const SettingsScreen = ({ navigation }) => {
           </View>
 
           {/* personal information */}
-          <Text style={styles.sectionTitle}>Personal Infromation</Text>
+          <Text style={styles.sectionTitle}>Personal Information</Text>
           <View style={styles.section}>
             <View style={styles.settingItem}>
               <View style={styles.settingInfo}>
@@ -79,7 +103,7 @@ const SettingsScreen = ({ navigation }) => {
                   <Text style={styles.settingDescription}>Update your Profile name and location</Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => navigation.navigate('PersonalInfo')}>
+              <TouchableOpacity onPress={() => navigation.navigate('UpdateUserInfo')}>
                 <Ionicons name="chevron-forward" size={20} color="#CCC" />
               </TouchableOpacity>
             </View>
@@ -91,7 +115,7 @@ const SettingsScreen = ({ navigation }) => {
                   <Text style={styles.settingDescription}>Update your email</Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => navigation.navigate('PersonalInfo')}>
+              <TouchableOpacity onPress={() => navigation.navigate('UpdateEmail')}>
                 <Ionicons name="chevron-forward" size={20} color="#CCC" />
               </TouchableOpacity>
             </View>
@@ -103,7 +127,7 @@ const SettingsScreen = ({ navigation }) => {
                   <Text style={styles.settingDescription}>Update your phone number</Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => navigation.navigate('MoreName')}>
+              <TouchableOpacity onPress={() => navigation.navigate('UpdatePhone')}>
                 <Ionicons name="chevron-forward" size={20} color="#CCC" />
               </TouchableOpacity>
             </View>
@@ -124,7 +148,7 @@ const SettingsScreen = ({ navigation }) => {
                   <Text style={styles.settingDescription}>Manage alerts and notifications</Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
+              <TouchableOpacity onPress={() => navigation.navigate('NotificationSettings')}>
                 <Ionicons name="chevron-forward" size={20} color="#CCC" />
               </TouchableOpacity>
             </View>
@@ -143,7 +167,7 @@ const SettingsScreen = ({ navigation }) => {
               </View>
               <Switch
                 value={settings.locationServices}
-                onValueChange={() => toggleSwitch('locationServices')}
+                onValueChange={() => toggleSwitch('locationServices', !settings.locationServices)}
                 trackColor={{ false: '#E5E5E5', true: '#FF7F00' }}
                 thumbColor="#FFFFFF"
               />
@@ -159,7 +183,7 @@ const SettingsScreen = ({ navigation }) => {
               </View>
               <Switch
                 value={settings.cameraAccess}
-                onValueChange={() => toggleSwitch('cameraAccess')}
+                onValueChange={() => toggleSwitch('cameraAccess', !settings.cameraAccess)}
                 trackColor={{ false: '#E5E5E5', true: '#FF7F00' }}
                 thumbColor="#FFFFFF"
               />

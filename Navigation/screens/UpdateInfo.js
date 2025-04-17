@@ -1,24 +1,148 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  TextInput,
-  Image,
-} from 'react-native';
+import React,{useEffect, useState} from 'react';
+import { View, Text, TouchableOpacity,StyleSheet,TextInput,Image, Alert} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
+import ValidateFace from '../../Functions/verifyImage'; 
+import GetUserData from "../../Functions/getUserData"
+import useLiveLocation from '../../Functions/getCurrentLocation';
+import GetReverseLocation from "../../Functions/reverseLocationLookup"
+import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from 'expo-file-system';
+import { ActivityIndicator } from 'react-native';
+import updateUserInfo from "../../Functions/updateUserInfo"
+
 
 const UpdateInformationScreen = ({ navigation }) => {
-  const [fontsLoaded] = useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
-  });
+  const [user_data,setUserData] = useState('')
+  const location = useLiveLocation(); 
+  const [address,setAddress] = useState();
+  const [capturedImage,setCapturedImage] = useState('');
+  const [originalData, setOriginalData] = useState(null);
+  const [firstName, setFirstName] = useState('');
+  const [loading, setLoading] = useState(false)
+  const isChanged = (originalData && firstName !== originalData.name) || capturedImage !== '' || firstName.trim() === '';
 
-  if (!fontsLoaded) {
-    return <Text>Loading...</Text>;
+
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        await Promise.all([
+          handleFetchData(),
+          reverse()
+        ]);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchAll();
+  }, []);
+  
+
+   
+   async function reverse() {
+      if(location){
+            const location_data = await GetReverseLocation(location.latitude,location.longitude)
+            setAddress(location_data);
+   }}
+      
+
+  const handleFetchData = async () =>{
+    const data = await GetUserData();
+    if(!data){
+      console.log('No data found')
+      return;
+    }
+    setUserData(data.data);
+    setOriginalData(data.data);
+    setFirstName(data.data.name);
+   }
+
+
+
+   const handleCameraPress = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission Required", "Please allow access to your camera.");
+      return;
+    }
+  
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [9, 16], 
+      quality: 1,
+    });
+  
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const imageUri = result.assets[0].uri;
+      setCapturedImage(imageUri);
+      setUserData(prev => ({ ...prev, image: imageUri }));
+    }
+  };
+  
+
+
+  const handleValidateProfile = async ()  =>{
+    let profileImage = user_data.image;
+    setLoading(true);
+   if (typeof profileImage === 'string' && profileImage.startsWith('http')) {
+      const localUri = `${FileSystem.cacheDirectory}profileImage.jpg`;
+      const downloadResumable = FileSystem.createDownloadResumable(profileImage, localUri);
+      const { uri: downloadedUri } = await downloadResumable.downloadAsync();
+      profileImage = downloadedUri;
+    }
+    try{
+      const validateFace = await ValidateFace(capturedImage,profileImage);
+
+      if(validateFace?.success){
+       Alert.alert('Success','Your profile picture has been successfully updated.');
+       return capturedImage;
+      }else{
+        Alert.alert( 'Face Not Matched','For your security, we compared your current photo with the existing one on file. Unfortunately, they did not match. Please retake the photo and ensure your face is clearly visible.');        
+        setCapturedImage('');
+        setUserData(prev => ({ ...prev, image: user_data.image }));
+      }}catch(error){
+        console.log('Error validating image:', error);
+        Alert.alert('Error','Failed to validate image. Please try again.')}
+    finally{
+      setLoading(false);
+    }
+  } 
+
+  const handleCancel = () => {
+    setFirstName(originalData?.name || '');
+    setCapturedImage('');
+    setUserData(originalData);
+    navigation.goBack();
+  };
+  
+
+
+  const HandleSubmitUpdate = async () => {
+    let image = capturedImage ? await handleValidateProfile() : originalData?.image;
+    let name = firstName !== originalData?.name ? firstName : originalData?.name;
+    return { image, name };
+  };
+
+
+
+  async function HandleDataSubmission(){
+    try{
+      setLoading(true);
+        const { image, name } = await HandleSubmitUpdate();
+        const UpdateData = await updateUserInfo(name, image);
+        if(UpdateData?.success){
+          Alert.alert('Success','Your information has been successfully updated.');
+          navigation.goBack();
+        }else {
+          Alert.alert('Error', UpdateData?.message || 'Failed to update data.');
+        }
+      } catch (error) {
+        const errorMessage = error?.response?.data?.message || error.message || 'Failed to update data. Please try again.';
+         Alert.alert('Error', errorMessage);
+      }finally{
+      setLoading(false);
+    }
   }
 
   return (
@@ -32,32 +156,45 @@ const UpdateInformationScreen = ({ navigation }) => {
       </View>
 
       {/* Profile Picture Section */}
-      <TouchableOpacity style={styles.profilePictureContainer}>
-        <View style={styles.profilePicture}>
-          <Ionicons name="person-outline" size={40} color="#666" />
+            <TouchableOpacity style={styles.profilePictureContainer} onPress={handleCameraPress}>
+        <View style={styles.profilePictureWrapper}>
+          {user_data?.image ? (
+            <Image
+              source={{ uri: user_data.image }}
+              style={styles.profileFallback}
+            />
+          ) : (
+            <View style={styles.profileFallback}>
+              <Ionicons name="person-outline" size={40} color="#666" />
+            </View>
+          )}
+
+          {loading && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color="#FF7F00" />
+            </View>
+          )}
         </View>
         <Text style={styles.profilePictureText}>Tap to change Profile Picture</Text>
       </TouchableOpacity>
+
+
+ 
 
       {/* Form Fields */}
       <View style={styles.formContainer}>
         {/* Name Fields */}
         <View style={styles.nameContainer}>
           <View style={styles.inputHalf}>
-            <Text style={styles.label}>First Name</Text>
+            <Text style={styles.label}>Full Name</Text>
             <TextInput
               style={styles.input}
-              
-              
+              placeholder={user_data.name}
+              value={firstName}
+               onChangeText={setFirstName}
             />
           </View>
-          <View style={styles.inputHalf}>
-            <Text style={styles.label}>Last Name</Text>
-            <TextInput
-              style={styles.input}
-             
-            />
-          </View>
+          
         </View>
 
         {/* Email/Phone Field */}
@@ -65,10 +202,9 @@ const UpdateInformationScreen = ({ navigation }) => {
           <Text style={styles.label}>Email Address/Phone Number</Text>
           <View style={styles.inputWithIcon}>
             <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
-            <TextInput
+            <Text
               style={styles.inputWithIconField}
-              
-            />
+            >{user_data.email}</Text>
           </View>
         </View>
 
@@ -77,22 +213,28 @@ const UpdateInformationScreen = ({ navigation }) => {
           <Text style={styles.label}>Barangay address</Text>
           <View style={styles.inputWithIcon}>
             <Ionicons name="location-outline" size={20} color="#666" style={styles.inputIcon} />
-            <TextInput
-              style={styles.inputWithIconField}
-    
-            />
+            <Text style={styles.inputWithIconField}> 
+               {address?.city && address?.region
+              ? `${address.city} ${address.region}`
+              : "Fetching address..."} 
+    </Text>
           </View>
         </View>
       </View>
 
-      {/* Buttons */}
+
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.cancelButton}>
+        <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Save Changes</Text>
-        </TouchableOpacity>
+
+        <TouchableOpacity  style={[styles.saveButton, { backgroundColor: (firstName.trim() && (capturedImage || firstName !== originalData?.name)) ? '#FF7F00' : '#ccc' }]}
+          onPress={HandleDataSubmission}
+          disabled={!firstName.trim() || !isChanged}
+        >
+      <Text style={styles.saveButtonText}>{loading ? "Saving..." : "Save Changes"} </Text>
+    </TouchableOpacity>
+
       </View>
     </View>
   );
@@ -126,15 +268,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 30,
   },
-  profilePicture: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#f0f0f0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
+  
   profilePictureText: {
     fontFamily: 'Poppins_500Medium',
     color: '#666',
@@ -184,7 +318,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
     fontFamily: 'Poppins_500Medium',
-    fontSize: 16,
+    fontSize: 13,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -218,7 +352,47 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#fff',
     textAlign: 'center',
+  },profilePictureWrapper: {
+    width: 100,
+  height: 100,
+  borderRadius: 50,
+  overflow: 'hidden',
+  justifyContent: 'center',
+  alignItems: 'center',
+  position: 'relative', 
+  backgroundColor: '#f0f0f0',
+  },profileImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 50,
   },
+  
+  profilePicture: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 50,
+  },
+  
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 50,
+  },
+  profileFallback: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 50,
+    backgroundColor: '#f0f0f0',
+  },
+  
 });
 
 export default UpdateInformationScreen;

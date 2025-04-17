@@ -166,7 +166,7 @@ export default function IdentityVerification() {
       console.error('no profile image')
       return false
     }
-    Alert.alert('Processing','Running the update function')
+ 
     let updateStatus = await UpdateUser.UpdateUserStatus(imageUri);
 
     if (updateStatus.successfull) {

@@ -12,7 +12,6 @@ import Camera from './screens/Camera';
 import Maps from './screens/Maps';
 import Profile from './screens/Profile';
 import More from './screens/More';
-import { Alert } from 'react-native';
 
 // Screen names
 const homeName = 'Home';

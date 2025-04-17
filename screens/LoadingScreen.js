@@ -4,6 +4,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-na
 import { useFonts, Poppins_700Bold } from "@expo-google-fonts/poppins";
 import { useNavigation } from "@react-navigation/native";
 import { auth } from "../firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function LoadingScreen() {
   const navigation = useNavigation();
@@ -11,7 +12,7 @@ export default function LoadingScreen() {
 
   const [fontsLoaded] = useFonts({ Poppins_700Bold });
 
-  // Animation values
+
   const textOpacity = useSharedValue(0);
   const textScale = useSharedValue(0.8);
   const progressWidth = useSharedValue(0);
@@ -19,12 +20,19 @@ export default function LoadingScreen() {
   useEffect(() => {
     textOpacity.value = withTiming(1, { duration: 1200 });
     textScale.value = withTiming(1, { duration: 1200 });
-
     progressWidth.value = withTiming(250, { duration: 3000 });
-
-    setTimeout(() => {
-      user ? navigation.replace("homepage") : navigation.replace("Login");
-    }, 4000);
+  
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setTimeout(() => {
+        if (user) {
+          navigation.navigate("homepage");
+        } else {
+          navigation.navigate("Login");
+        }
+      }, 4000);
+    });
+  
+    return () => unsubscribe();
   }, []);
 
   const textStyle = useAnimatedStyle(() => ({

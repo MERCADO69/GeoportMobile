@@ -22,7 +22,6 @@ export default async function ValidateFace(capturedID, profileImage) {
     formData.append('source_image', await processImage(capturedID, 'id'));
     formData.append('target_image', await processImage(profileImage, 'face'));
 
-    console.log('Sending verification request...',formData);
     
     const response = await axios.post(
       `http://${SERVER_IP}:8000/api/v1/verification/verify`,
@@ -36,7 +35,6 @@ export default async function ValidateFace(capturedID, profileImage) {
       }
     );
 
-    console.log('Verification response:', JSON.stringify(response.data, null, 2));
     if (Array.isArray(response.data.result)) {
       response.data.result.forEach((res, index) => {
         console.log(`Result ${index + 1}:`, JSON.stringify(res, null, 2));

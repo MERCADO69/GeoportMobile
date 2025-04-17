@@ -15,7 +15,7 @@ export default async function FetchReportedReports(){
     return true;
   }
 
-  console.log('tokeeeeeeeeeeeeeeeeeeeeennnnnnnnnnnnn',token)
+ 
   const url = `http://${SERVER_IP}:${SERVER_PORT}/${FETCH_REPORTED_REPORTS}?id=${id}`
   
  try{

@@ -10,7 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 
-const UpdateEmailPhoneScreen = ({ navigation }) => {
+const UpdatePhoneScreen = ({ navigation }) => {
   const [currentEmail, setCurrentEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [newEmail, setNewEmail] = useState('');
@@ -168,4 +168,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default UpdateEmailPhoneScreen;
+export default UpdatePhoneScreen;

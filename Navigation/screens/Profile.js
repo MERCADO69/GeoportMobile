@@ -1,7 +1,7 @@
 import { Poppins_400Regular, Poppins_500Medium } from '@expo-google-fonts/poppins';
 import React from 'react';
 import  { useState,useEffect ,useCallback} from 'react';
-import { View, Text, StyleSheet, SafeAreaView,ScrollView, TouchableOpacity, RefreshControl,Alert,Image } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView,ScrollView, TouchableOpacity, RefreshControl,Alert,Image,Button } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import GetUserData from "../../Functions/getUserData";
 import { auth } from "../../firebaseConfig";
@@ -22,41 +22,47 @@ export default function Morescreen({ navigation }) {
    
   useEffect(()=>{
     if(data.status){
-        if(data.status != 'verified'){
-            setStatus('Unverified Resident')
-            return
+        if(data.status = 'verified'){
+           setStatus('Verified Resident')
         }else{
-          setStatus('Verified Resident')
+          setStatus('Unverified Resident')
         }
     }
   })
 
+  useEffect(()=>{
+    async function FetchAllData(){
+      try{
+        await Promise.all([
+          fetchedData(),
+          fetchReports(),
+          reverse()
+        ])
+      }catch(error){
+        console.error("Error fetching data:", error);
+      }
+    } 
+    FetchAllData()
+  },[])
 
-
-    useEffect(()=>{
+    
       async function fetchedData(){
         const fetch = await GetUserData()
         if(fetch){
           setUserData(fetch.data)
         }
       }
-      fetchedData()
-    },[])
+   
 
   
-    useEffect(()=>{
      async function reverse() {
       if(location){
         const location_data = await GetReverseLocation(location.latitude,location.longitude)
         setAddress(location_data);
       }
      }
-     reverse()
-    },[location])
 
 
-    useEffect(()=>{
-      console.log('running')
         async function fetchReports() {
           const result =  await FetchReportedReports()
           if(result && result.data){
@@ -67,19 +73,29 @@ export default function Morescreen({ navigation }) {
             setSolvedTotal(solvedReports.length)
           }
         }
-        fetchReports()
-    },[])
-
  
 
     const onRefresh = useCallback(async () => {
-       setRefreshing(true);
-       await fetchData();
-       await fetchReports();
-       await reverse();
-       setRefreshing(false);
+      setRefreshing(true);
+      try {
+        await Promise.all([
+          fetchedData(),
+          fetchReports(),
+          reverse()
+        ]);
+      } catch (error) {
+        console.error("Error refreshing:", error);
+        Alert.alert("Refresh Failed", "Something went wrong while refreshing.");
+      } finally {
+        setRefreshing(false);
+      }
     }, []);
+    
 
+
+    function handleSettingsButton(){
+        navigation.navigate('More')
+    }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -196,16 +212,7 @@ export default function Morescreen({ navigation }) {
         </TouchableOpacity>
 
         {/* Settings */}
-        <TouchableOpacity 
-          style={styles.menuItem}
-          onPress={() =>
-            Alert.alert(
-              "Settings",
-              "Configure your app preferences",
-              [{ text: "OK", onPress: () => console.log("Settings OK Pressed") }]
-            )
-          }
-        >
+        <TouchableOpacity  style={styles.menuItem} onPress={() => handleSettingsButton() }>
           <View style={styles.menuItemContent}>
             <Ionicons name="settings-outline" size={24} color="#FA812F" />
             <View style={styles.menuTextContainer}>
@@ -213,6 +220,7 @@ export default function Morescreen({ navigation }) {
               <Text style={styles.menuSubtitle}>App preferences</Text>
             </View>
           </View>
+
         </TouchableOpacity>
       </View>
       </ScrollView>

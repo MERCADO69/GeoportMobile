@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, Text, StatusBar,Alert } from 'react-native';
 import { Polyline } from 'react-native-maps';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import polyline from "@mapbox/polyline";
 import MapView, { UrlTile, Marker } from 'react-native-maps';
 import SearchIcon from '../../Images/search.svg';
@@ -10,6 +11,7 @@ import fetchReports from "../../Functions/fetchReports";
 import RoutingFunction from "../../Functions/routingFunction"
 import ModalList from "../modals/modalMaker"
 import { getDistance as geolibGetDistance } from 'geolib';
+import { set } from 'react-hook-form';
 
 
 export default function MapsScreen() {
@@ -25,7 +27,24 @@ export default function MapsScreen() {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const routingFunction = new RoutingFunction();
   const prevReportData = useRef([]);
+  const [isReroutingEnabled, setIsReroutingEnabled] = useState(false);
+  const [isLocationAvailable,setIsLocationAvailable] = useState(false)
 
+    const loadSettings = async () => {
+      try {
+        const savedSmartRerouting = await AsyncStorage.getItem('userSettings');
+        if (savedSmartRerouting !== null) {
+          const parsedSettings = JSON.parse(savedSmartRerouting);
+          const isEnabled = !!parsedSettings.smartRerouting; 
+          const isLocationEnabled = !!parsedSettings.locationServices;
+          setIsReroutingEnabled(isEnabled);
+          setIsLocationAvailable(isLocationEnabled);
+           console.log("The configured settings is ",JSON.stringify(isEnabled)," and location is ",JSON.stringify(isLocationEnabled));
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+      }
+    };
 
 
   useEffect(() => {
@@ -39,9 +58,7 @@ export default function MapsScreen() {
             longitudeDelta: 0.05,
           });
         }
-
         await fetchReports(setReportData);
-        
         const data = await GetUserData();
         if (data) {
           setStatus(data.data?.status);
@@ -50,8 +67,9 @@ export default function MapsScreen() {
         console.error("Error fetching data: ", error);
       }
     }
-
+    loadSettings();
     fetchData();
+    
   }, [location]); 
 
 
@@ -62,7 +80,7 @@ export default function MapsScreen() {
 
         if (isChanged) {
             handleRerouting(selectedLocation);
-            prevReportData.current = reportData; // Update previous data
+            prevReportData.current = reportData; 
         }
     }
 }, [reportData]);
@@ -73,7 +91,7 @@ export default function MapsScreen() {
 async function handleRerouting(destinationLocation) {
   let startLocation = { latitude: location.latitude, longitude: location.longitude };
   let endLocation = { latitude: destinationLocation.latitude, longitude: destinationLocation.longitude };
-
+  
   try {
     const data = await routingFunction.requestRoute(startLocation, endLocation);
     const repairedRoads = await getUnpassableRoadCoordinates();
@@ -87,15 +105,16 @@ async function handleRerouting(destinationLocation) {
 
       const rerouteNeeded = checkForRepairedRoads(decodedCoordinates, repairedRoads);
 
-      if (rerouteNeeded) {
-        console.log("Trying to reroute...");
+      if (rerouteNeeded ) {
+        console.log("Repair on route detected. Adjusting route...",repairedRoads);
         Alert.alert("Route adjusted", "We adjusted your route due to reported road issues.");
-        const alternativeRoute = await findAlternativeRoute(startLocation, endLocation);
-        if (alternativeRoute && alternativeRoute.length > 0) {
+        const alternativeRoute = await findAlternativeRoute(startLocation, endLocation,repairedRoads);
+        
+        if (alternativeRoute && alternativeRoute.length > 0) {  
           console.log("Alternative route:", alternativeRoute);
           setRoute([]); 
           setTimeout(() => {
-            setRoute(alternativeRoute);
+            setRoute(alternativeRoute)
           }, 50);
         } else {
           console.warn("No alternative route found.");
@@ -147,37 +166,78 @@ async function handleRerouting(destinationLocation) {
   
   
   
-   async function findAlternativeRoute(startLocation, endLocation) {
-    const data = await routingFunction.requestRoute(startLocation, endLocation, { avoidRepairs: true });
-    const encodedPolyline = data.routes[0].geometry;
-    const decodedCoordinates = polyline.decode(encodedPolyline).map(coord => ({
-      latitude: coord[0],
-      longitude: coord[1]
-    }));
-    return decodedCoordinates;
+  async function findAlternativeRoute(startLocation, endLocation) {
+    try {
+      const defectNode = await getUnpassableRoadCoordinates();
+      setRoute([]);
+      const data = await routingFunction.requestReroute(startLocation, endLocation,defectNode);
+      
+      if (!data || data.length === 0) {
+        console.warn("No geometry or routes found in the response:", data);
+        return { mainRoute: null, alternatives: [] };
+      }
+  
+      const encodedPolyline = data;
+  
+      if (!encodedPolyline || typeof encodedPolyline !== "string") {
+        console.warn("No encoded polyline found:", encodedPolyline);
+        return [];
+      }
+  
+      console.log("Encoded polyline:", encodedPolyline);
+
+      const decodedCoordinates = polyline.decode(encodedPolyline).map(coord => ({
+        latitude: coord[0],
+        longitude: coord[1]
+      }));
+  
+      return decodedCoordinates;
+    } catch (error) {
+      console.error("Error in findAlternativeRoute:", error);
+      return [];
+    }
   }
   
+  
+    // TODO: I fix ang filtering sa report severity 
 
-  async function getUnpassableRoadCoordinates() {
-    const coordinates = reportData.map(report => ({
-      latitude: parseFloat(report.latitude),
-      longitude: parseFloat(report.longitude)
-    }));
-  
-    console.log("Coordinates array:", coordinates); 
-    return coordinates; 
-  }
-  
-  
-  
+    async function getUnpassableRoadCoordinates() {
+      const coordinates = reportData
+        .filter(report => {
+          if (report.type === 'vehicle collision') {
+            return report.severity === 'high';
+          } else if (report.type === 'road defects') {  
+            return report.status === 'Under Construction';
+          }
+          return false;
+        })
+        .map(report => ({
+          latitude: parseFloat(report.latitude),
+          longitude: parseFloat(report.longitude),
+        }));
+      console.log("Coordinates array:", coordinates);
+      return coordinates;
+    }
 
+  
   
   
 function handleCloseModal(){
   setShowModal(false)
 }
 
-function handleOpenModal(){
+async function handleOpenModal(){
+ loadSettings();
+  if(!isReroutingEnabled){
+    Alert.alert("Smart Rerouting is disabled", `To use this feature. Please enable smart routing in the settings. ${isReroutingEnabled}`);
+    return;
+  }
+
+  if(!isLocationAvailable){
+    Alert.alert("Location Services Disabled", "Please enable location services in your settings.");
+    return;
+  }
+  
   if(!isSmartTraveling){
     setIsSmartTraveling(true);
     setShowModal(true)

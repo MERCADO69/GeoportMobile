@@ -10,7 +10,8 @@ import uploadToCloudinary from "../../Functions/cloudinaryUploader"
 import GetUserData from "../../Functions/getUserData"
 import useLiveLocation from "../../Functions/getCurrentLocation";
 import GuideModal from "../modals/guideModal"
-import ModalList from "../modals/modalMaker"
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 export default function Camera() {
   const [flashOn, setFlashOn] = useState(false);
@@ -23,9 +24,37 @@ export default function Camera() {
   const [buttonStatus,setButtonStatus] = useState(true)
   const [modalStatus, setModalStatus] = useState("validated");
   const loc = useLiveLocation()
+  const [isCameraReady,setIsCameraAccessible] = useState(false)
 
-  // Open Camera and Capture Image
+
+
+    const loadSettings = async () => {
+        try {
+          const isCameraAccessible = await AsyncStorage.getItem('userSettings');
+          if (isCameraAccessible !== null) {
+            const parsedSettings = JSON.parse(isCameraAccessible);
+            const isEnabled = !!parsedSettings.cameraAccess; 
+            setIsCameraAccessible(isEnabled);
+            console.log("The configured settings is ",JSON.stringify(isEnabled));
+          }
+        } catch (error) {
+          console.error('Failed to load settings:', error);
+        }
+      };
+
+
+
+
+
+
   const handleCameraPress = async () => {
+   await loadSettings()
+
+    if(!isCameraReady){
+      Alert.alert("Camera Access Denied", "Please enable camera access in your settings.");
+      return;
+    }
+    
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("Permission Required", "Please allow access to your camera.");
@@ -122,6 +151,7 @@ export default function Camera() {
                 }
           }
         }
+        loadSettings()
         FetchData()
     },[])
 

@@ -67,7 +67,7 @@ export default async function StoreReportToDatabase(imageurl, report_type,loc) {
     });
 
     if (!response || !response.data) {
-      console.log('unsuccessfull submission of report')
+      console.log(response.message)
 
        const removeImage = await deleteFromCloudinary(imageurl)
        if(!removeImage){

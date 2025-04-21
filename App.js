@@ -1,6 +1,12 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack'
+import { useEffect } from 'react';
+import { Alert, Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
+
+
+;
 import Maincontainer from './Navigation/Maincontainer';
 import LoginScreen from './screens/Loginscreen';
 import Forgetpass from './screens/Forgetpass';
@@ -14,9 +20,42 @@ import UpdatePhoneScreen from "./Navigation/screens/PhoneUpdate"
 import ReportsHistoryScreen from "./Navigation/screens/History"
 import UpdateEmail from "./Navigation/screens/Emailupdate"
 import UpdateInformationScreen from "./Navigation/screens/UpdateInfo"
-const Stack = createStackNavigator();
 
+const Stack = createStackNavigator();
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 function app() {
+  
+
+  useEffect(() => {
+    const foregroundSubscription = Notifications.addNotificationReceivedListener(notification => {
+      const { title, body, info } = notification.request.content.data;
+      console.log("Foreground Notification Title:", title);
+      console.log("Foreground Notification Body:", body);
+      console.log("Foreground Notification Extra Data:", info);
+      Alert.alert(title, body);
+    });
+
+    const backgroundSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+      const { title, body, info } = response.notification.request.content.data;
+      console.log("Background Notification Title:", title);
+      console.log("Background Notification Body:", body);
+      console.log("Background Notification Extra Data:", info);
+    
+      Alert.alert(title, body);
+    });
+
+    return () => {
+      foregroundSubscription.remove();
+      backgroundSubscription.remove();
+    };
+  }, []);
+
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Loading">

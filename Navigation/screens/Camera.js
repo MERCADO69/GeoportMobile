@@ -110,7 +110,7 @@ export default function Camera() {
       const uploadImage = await uploadToCloudinary(photoUri, report_type);
       
       if (!uploadImage) {
-        setReportMessage('Something went wrong. Unable to upload image to image server');
+        setReportMessage(uploadImage.message);
         setModalStatus('error');
         return; 
       }

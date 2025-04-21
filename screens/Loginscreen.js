@@ -29,6 +29,10 @@ export default function LoginScreen({ navigation }) {
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isDisabled = !isValidEmail(email) || password.length < 6;
 
+    
+
+
+
   const handleLogin = async (data) => {
     try {
       const tryToLogin = await loginFunction(data.email, data.password);
@@ -42,9 +46,7 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
-  function handleSignup(){
 
-  }
 
 
   return (

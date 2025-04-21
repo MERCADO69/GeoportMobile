@@ -2,6 +2,7 @@
   "expo": {
     "name": "GeoportMalaybalay",
     "slug": "GeoportMalaybalay",
+    "owner": "mart_dev",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,14 +23,14 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "extra": {
-      "eas": {
-        "projectId": "3bfed932-327a-45e8-bc6c-0d5706a322be"
-      }
-    },
     "ios": {
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "25d1864e-9bcb-4ae7-bc10-ec8ee8e25efb"
       }
     }
   }

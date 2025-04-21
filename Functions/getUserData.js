@@ -12,6 +12,7 @@ export default async function GetUserData() {
             }
             let id = user.uid;
             let token = await user.getIdToken();
+            console.log('token',token)
             const url = `http://${SERVER_IP}:${SERVER_PORT}/${FETCH_USER_DATA}?id=${id}`;
 
             const response = await axios.get(url,{

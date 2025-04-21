@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import {View,Text,StyleSheet,SafeAreaView,TouchableOpacity,Switch,} from 'react-native';
+import React, { useState,useEffect} from 'react';
+import {View,Text,StyleSheet,SafeAreaView,TouchableOpacity,Switch, Alert,} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
-
+import applyForPushNotification from "../../Functions/savePushNotificationToken"
+import removePushNotification from "../../Functions/removePushnotification"
 const NotificationSettingScreen = ({ navigation }) => {
   const [settings, setSettings] = useState({
     pushNotifications: false,
@@ -18,14 +21,81 @@ const NotificationSettingScreen = ({ navigation }) => {
     Poppins_600SemiBold,
   });
 
-  if (!fontsLoaded) {
-    return <Text>Loading...</Text>; // Or a loading spinner
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const storedSettings = await AsyncStorage.getItem('userSettings');
+        if (storedSettings !== null) {
+          setSettings(JSON.parse(storedSettings));
+          console.log('Loaded settings from AsyncStorage');
+        }
+      } catch (error) {
+        console.log('Error loading settings:', error);
+      }
+    };
+  
+    loadSettings();
+  }, []);
+  
+
+  useEffect(() => {
+    const saveSettings = async () => {
+      try {
+        await AsyncStorage.setItem('userSettings', JSON.stringify(settings));
+        console.log('Settings saved to AsyncStorage');
+      } catch (error) {
+        console.log('Error saving settings:', error);
+      }
+    };
+  
+    saveSettings();
+  }, [settings]); 
+
+
+  async function handleApplyNotification() {
+    try{
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+  
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+  
+      if (finalStatus !== 'granted') {
+        Alert.alert('Permission not granted', 'You need to enable notifications to receive updates.');
+        return;
+      }
+        const isapply = await applyForPushNotification()
+        if(!isapply){
+          Alert.alert('Failed to apply for notification')
+          return
+        }
+        console.log('success')
+    }catch(error){
+      console.log('Something went wrong')
+    }
   }
+
+
+
+  async function HandleDelete(){
+    try{
+      const isRemoved = await removePushNotification()
+      if(!isRemoved){
+        Alert.alert('Error',"Can't remove report")
+      }
+      console.log('Successfully removed notification')
+    }catch(error){
+      console.log('failed to remove')
+    }
+  }
+
 
   const toggleSwitch = (key) => {
     if (key === 'pushNotifications') {
       if (settings.pushNotifications) {
-        // If push notifications are being turned off, reset to the default state
+        HandleDelete()
         setSettings({
           pushNotifications: false,
           statusChanged: true,
@@ -34,7 +104,7 @@ const NotificationSettingScreen = ({ navigation }) => {
           communityActivity: false,
         });
       } else {
-        // If push notifications are being turned on, enable all notifications
+        handleApplyNotification()
         setSettings({
           pushNotifications: true,
           statusChanged: true,
@@ -44,7 +114,6 @@ const NotificationSettingScreen = ({ navigation }) => {
         });
       }
     } else {
-      // Handle other switches (keep them independent)
       setSettings(prevState => ({
         ...prevState,
         [key]: !prevState[key],
@@ -73,7 +142,7 @@ const NotificationSettingScreen = ({ navigation }) => {
             </View>
             <Switch
               value={settings.pushNotifications}
-              onValueChange={() => toggleSwitch('pushNotifications')}
+              onValueChange={() =>toggleSwitch('pushNotifications')}
               trackColor={{ false: '#E5E5E5', true: '#FF7F00' }}
               thumbColor="#FFFFFF"
             />

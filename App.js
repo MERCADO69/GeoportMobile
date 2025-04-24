@@ -10,7 +10,6 @@ import * as Notifications from 'expo-notifications';
 import Maincontainer from './Navigation/Maincontainer';
 import LoginScreen from './screens/Loginscreen';
 import Forgetpass from './screens/Forgetpass';
-import DebugScreen from './screens/ScreenDebugger';
 import LoadingScreen from './screens/LoadingScreen';
 import MobileNumberInput from "./screens/Redirect"
 import AboutGeoportscreen from "./Navigation/screens/AboutGeoport"
@@ -19,7 +18,10 @@ import NotificationSettingScreen from "./Navigation/screens/Notifsettings"
 import UpdatePhoneScreen from "./Navigation/screens/PhoneUpdate"
 import ReportsHistoryScreen from "./Navigation/screens/History"
 import UpdateEmail from "./Navigation/screens/Emailupdate"
+import ForgotPasswordScreen from "./screens/Forgetpass"
+import NewForgotPasswordScreen from "./screens/Newpassword"
 import UpdateInformationScreen from "./Navigation/screens/UpdateInfo"
+import ForgotPasswordVerifyScreen from "./screens/CodeVerify"
 
 const Stack = createStackNavigator();
 Notifications.setNotificationHandler({
@@ -69,6 +71,8 @@ function app() {
         <Stack.Screen name="NotificationSettings" component={NotificationSettingScreen} options={{ headerShown: false }}  />
         <Stack.Screen name="UpdatePhone" component={UpdatePhoneScreen} options={{ headerShown: false }}  />
         <Stack.Screen name="ReportsHistory" component={ReportsHistoryScreen} options={{ headerShown: false }}  />
+        <Stack.Screen name="NewForgotPass" component={NewForgotPasswordScreen} options={{ headerShown: false }}  />
+        <Stack.Screen name="ForgotPass" component={ForgotPasswordScreen} options={{ headerShown: false }}  />
         <Stack.Screen name="UpdateEmail" component={UpdateEmail} options={{ headerShown: false }}  />
         <Stack.Screen name="UpdateUserInfo" component={UpdateInformationScreen} options={{ headerShown: false }}  />
       </Stack.Navigator>

@@ -13,9 +13,6 @@ const ForgotPasswordScreen = ({ navigation }) => {
     Poppins_600SemiBold,
   });
 
-  if (!fontsLoaded) {
-    return <ActivityIndicator size="large" color="#FF7F00" />;
-  }
 
   const handleSendVerificationCode = () => {
     if (!email) {

@@ -21,7 +21,6 @@ import UpdateEmail from "./Navigation/screens/Emailupdate"
 import ForgotPasswordScreen from "./screens/Forgetpass"
 import NewForgotPasswordScreen from "./screens/Newpassword"
 import UpdateInformationScreen from "./Navigation/screens/UpdateInfo"
-import ForgotPasswordVerifyScreen from "./screens/CodeVerify"
 
 const Stack = createStackNavigator();
 Notifications.setNotificationHandler({
@@ -36,11 +35,12 @@ function app() {
 
   useEffect(() => {
     const foregroundSubscription = Notifications.addNotificationReceivedListener(notification => {
-      const { title, body, info } = notification.request.content.data;
+      const { title, body, data } = notification.request.content;
       console.log("Foreground Notification Title:", title);
       console.log("Foreground Notification Body:", body);
-      console.log("Foreground Notification Extra Data:", info);
-      Alert.alert(title, body);
+      console.log("Foreground Notification Extra Data:", data);
+  
+      Alert.alert(title || 'No Title', body || 'No Body');
     });
 
     const backgroundSubscription = Notifications.addNotificationResponseReceivedListener(response => {
@@ -49,7 +49,6 @@ function app() {
       console.log("Background Notification Body:", body);
       console.log("Background Notification Extra Data:", info);
     
-      Alert.alert(title, body);
     });
 
     return () => {

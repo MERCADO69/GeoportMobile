@@ -28,12 +28,7 @@ export default async function StoreReportToDatabase(imageurl, report_type,loc) {
   let name = user_data.data.name;
   
   if (!user_data.data) {
-    console.log('Null user data '+user_data.data);
-    console.log('user data is missing')
-    return {
-      success: false,
-      message: "Failed to retrieve user data.",
-    };
+    return {success: false,message: "Failed to retrieve user data."};
   }
 
   
@@ -48,7 +43,7 @@ export default async function StoreReportToDatabase(imageurl, report_type,loc) {
       longitude: longitude.toString() 
     },
     email:email,
-    passable: "true",
+    passable: "false",
     reference: id,             
     reporter: name,          
     status: "Pending"    

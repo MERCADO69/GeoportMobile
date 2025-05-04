@@ -6,7 +6,6 @@ import { useFonts } from '@expo-google-fonts/poppins';
 import SearchIcon from '../../Images/search.svg'; 
 import GetUserData from "../../Functions/getUserData";
 import FetchReportedReports from "../../Functions/fetchReportedReports"
-import GetReverseLocation from "../../Functions/reverseLocationLookup"
 import useLiveLocation from '../../Functions/getCurrentLocation';
 import { useNavigation } from '@react-navigation/native';
 import DisplayReportImage from "../modals/displayReport"
@@ -23,7 +22,6 @@ export default function Homescreen() {
      const [percentSolved,setPercentSolved] = useState('')
      const [lastdateReported,setLastReportedDate] = useState('')
      const [listofReports,setListReports] = useState('')
-     const [reportLocations, setReportLocations] = useState({});
      const [isModalVisible, setIsModalVisible] = useState(false);
      const [selectedImage, setSelectedImage] = useState(null); 
      const navigation = useNavigation();
@@ -34,9 +32,7 @@ export default function Homescreen() {
     async function FetchAllData(){
         await Promise.all([
           fetchedData(),
-          reverse(),
-          fetch(),
-          fetchLocations()
+          fetch()
         ])
     }  
   FetchAllData()
@@ -51,12 +47,7 @@ export default function Homescreen() {
     }
  
   
-    async function reverse(){
-        if(location){
-          const location_data = await GetReverseLocation(location.latitude,location.longitude)
-          setAddress(location_data);
-        }
-      }
+  
   
       async function fetch(){
         const reportedReports = await FetchReportedReports();
@@ -88,36 +79,6 @@ export default function Homescreen() {
           }
       }
 
-      async function fetchLocations() {
-        const updatedLocations = {};
-        const locationsToFetch = Object.values(listofReports)
-          .filter(report => report.location)
-          .map(report => ({
-            key: `${report.location.latitude},${report.location.longitude}`,
-            latitude: report.location.latitude,
-            longitude: report.location.longitude,
-          }))
-          .filter(({ key }) => !reportLocations[key]);
-    
-        if (locationsToFetch.length === 0) return;
-    
-        try {
-          const locationResults = await Promise.all(locationsToFetch.map(({ latitude, longitude }) => GetReverseLocation(latitude, longitude)));
-    
-          locationsToFetch.forEach(({ key }, index) => {
-            updatedLocations[key] = locationResults[index];
-          });
-    
-          setReportLocations(prev => ({ ...prev, ...updatedLocations }));
-        } catch (error) {
-          console.error("Error fetching reverse geolocation:", error);
-        }
-      }
-    
-      if (listofReports && Object.keys(listofReports).length > 0) {
-        fetchLocations();
-      }
-    
     
 
     function getTimePassed(dateString) {
@@ -144,9 +105,7 @@ export default function Homescreen() {
           try{
           await Promise.all([
                 fetchedData(),
-            reverse(),
-              fetch(),
-              fetchLocations()
+              fetch()
         ])
       }catch(error){
           Alert.alert("Error", "Unable to refresh data. Please try again later.");
@@ -158,17 +117,17 @@ export default function Homescreen() {
 
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView  refreshControl={ <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+    <SafeAreaView style={styles.container}   >
+      <ScrollView refreshControl={<RefreshControl refreshing={refreshing}
+           onRefresh={onRefresh} />} contentContainerStyle={{ paddingBottom: 20 }}>
       <View style={styles.topBox} />
 
     <SafeAreaView>
       <Text style={[styles.Welcomeuser]}>Welcome back {data.name}!</Text>
-      <Text style={[styles.Welcomelocation]}>{address.barangay + " " + address.city }</Text>
+      <Text style={[styles.Welcomelocation]}>{location?.latitude + " " + location?.longitude}</Text>
       <Ionicons name="location-outline" size={20} color="#fff" style={styles.locationIcon} />
     </SafeAreaView>
 
-      {/* History Icon */}
       <SafeAreaView>
       <TouchableOpacity
   style={styles.bellContainer}
@@ -255,12 +214,10 @@ export default function Homescreen() {
         <Text style={[styles.Recent]}>Recent Activity</Text>
       </View>
 
-      <ScrollView style={styles.recentActivityContainer}>
+      <View style={styles.recentActivityContainer}>
 
       {total && Object.keys(listofReports).length > 0 ? (
         Object.values(listofReports).map((report, index) => {
-          const locationKey = `${report.location.latitude},${report.location.longitude}`;
-          const reversedLocation = reportLocations[locationKey];
           
           return (
             <TouchableOpacity key={index} style={[styles.card, styles.cardNewType]} onPress={() => {setSelectedImage(report.image); setIsModalVisible(true)}}>
@@ -270,7 +227,7 @@ export default function Homescreen() {
                   <Text style={[styles.title, { color: '#FA4032' }]}>{report.TypeOfReport}</Text>
                   <Text style={[styles.subtitle, styles.cardText]}>{report.status}</Text>
                   <Text style={[styles.location, styles.cardText]}>
-                    {reversedLocation ? `${reversedLocation.barangay} ${reversedLocation.city}` : "Fetching location..."}
+                    {report?.location.latitude + " " + report?.location.longitude|| "Fetching location..."}
                   </Text>
                 </View>
               </View>
@@ -286,7 +243,7 @@ export default function Homescreen() {
 
               )}
 
-</ScrollView>
+</View>
 </ScrollView>
     </SafeAreaView>
   );

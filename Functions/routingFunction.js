@@ -1,5 +1,5 @@
 import axios from "axios";
-import {SERVER_IP,APIkEY} from "@env"
+import {SERVER_IP,APIkEY,mapbox_secret,auto_generated_mapbox_key} from "@env"
 
 export default class RoutingFunction{
 
@@ -27,90 +27,81 @@ export default class RoutingFunction{
         }
     }
 
-    
     async requestReroute(currentLocation, destinationLocation, defectNode) {
-      const url = 'https://api.openrouteservice.org/v2/directions/driving-car';
-      
-      
+      console.log('====================================REROUTING==============================');
+      const url = 'https://api.mapbox.com/directions/v5/mapbox/driving/';
+      console.log('defect node is ', defectNode);
+    
       if (!currentLocation || !destinationLocation) {
         throw new Error('Both current and destination locations are required');
       }
     
       const coordinates = [
-        [currentLocation.longitude, currentLocation.latitude],
-        [destinationLocation.longitude, destinationLocation.latitude]
-      ];
+        `${currentLocation.longitude},${currentLocation.latitude}`,
+        `${destinationLocation.longitude},${destinationLocation.latitude}`
+      ].join(';');
     
-      let requestBody = {
-        coordinates: coordinates,
-        alternative_routes: {
-          target_count: 2, 
-          weight_factor: 1.8,
-          share_factor: 0.2  
-        },
-        instructions: false // Reduces response size if you don't need turn-by-turn
-      };
+      let excludeParam = '';
+      let apiUrl = '';
+      if (defectNode && Array.isArray(defectNode) && defectNode.length > 0) {
+        const exclusionPoints = defectNode
+          .filter(node => !isNaN(node.latitude) && !isNaN(node.longitude))
+          .map(node =>
+            `point(${node.longitude.toFixed(6)}%20${node.latitude.toFixed(6)})`
+          );
     
-      if (defectNode && Array.isArray(defectNode) && defectNode.length === 2) {
-        const [defectLatitude, defectLongitude] = defectNode;
-        
-        if (!isNaN(defectLatitude) && !isNaN(defectLongitude)) {
-        
-          const bufferSize = 0.003;
-          requestBody.options = {
-            avoid_polygons: {
-              type: "Polygon",
-              coordinates: [[
-                [defectLongitude - bufferSize, defectLatitude - bufferSize],
-                [defectLongitude + bufferSize, defectLatitude - bufferSize],
-                [defectLongitude + bufferSize, defectLatitude + bufferSize],
-                [defectLongitude - bufferSize, defectLatitude + bufferSize],
-                [defectLongitude - bufferSize, defectLatitude - bufferSize]
-              ]]
-            }
-          };
-        } else {
-          console.warn('Invalid defectNode values:', defectNode);
+        if (exclusionPoints.length > 0) {
+          excludeParam = `exclude=${exclusionPoints.join(',')}`;
         }
       }
     
+   
+    
+      if (excludeParam) {
+        apiUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?alternatives=true&${excludeParam}&access_token=${auto_generated_mapbox_key}`;
+      }
+    
       try {
-        const response = await axios.post(url, requestBody, {
-          headers: {
-            'Authorization': APIkEY,
-            'Content-Type': 'application/json',
-          },
-          timeout: 5000 
+        console.log('the request reroute api url is ', apiUrl);
+    
+        // Send the request to Mapbox API
+        const response = await axios.get(apiUrl, {
+          timeout: 5000
         });
     
+        // Check if the response contains valid routes
         if (!response.data?.routes?.length) {
           throw new Error('No routes found in response');
         }
     
         const mainRoute = {
-          distance: response.data.routes[0].summary.distance,
-          duration: response.data.routes[0].summary.duration,
+          distance: response.data.routes[0].distance,
+          duration: response.data.routes[0].duration,
           geometry: response.data.routes[0].geometry
         };
     
+        // Process alternative routes if available
         const alternatives = response.data.routes.slice(1).map(route => ({
-          distance: route.summary.distance,
-          duration: route.summary.duration,
+          distance: route.distance,
+          duration: route.duration,
           geometry: route.geometry
         }));
     
         if (alternatives.length > 0) {
-        return alternatives.geometry;  
+          return alternatives.map(route => route.geometry);
         } else {
-          console.log('No alternative routes available, returning main route', mainRoute.geometry);
-          return mainRoute.geometry;  
+          console.log('No alternative routes available, returning main route');
+          return mainRoute.geometry;
         }
       } catch (error) {
         console.error('Rerouting failed:', error.response?.data || error.message);
         throw error;
       }
     }
-
+    
+    
+    
+    
 
     storeCurrentLocation(currentLocation, destinationLocation) {
         const start = currentLocation;

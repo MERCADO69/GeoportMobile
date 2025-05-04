@@ -11,7 +11,6 @@ import fetchReports from "../../Functions/fetchReports";
 import RoutingFunction from "../../Functions/routingFunction"
 import ModalList from "../modals/modalMaker"
 import { getDistance as geolibGetDistance } from 'geolib';
-import { set } from 'react-hook-form';
 
 
 export default function MapsScreen() {
@@ -39,8 +38,7 @@ export default function MapsScreen() {
           const isLocationEnabled = !!parsedSettings.locationServices;
           setIsReroutingEnabled(isEnabled);
           setIsLocationAvailable(isLocationEnabled);
-           console.log("The configured settings is ",JSON.stringify(isEnabled)," and location is ",JSON.stringify(isLocationEnabled));
-        }
+            }
       } catch (error) {
         console.error('Failed to load settings:', error);
       }
@@ -88,51 +86,44 @@ export default function MapsScreen() {
 
 
 
-async function handleRerouting(destinationLocation) {
-  let startLocation = { latitude: location.latitude, longitude: location.longitude };
-  let endLocation = { latitude: destinationLocation.latitude, longitude: destinationLocation.longitude };
-  
-  try {
-    const data = await routingFunction.requestRoute(startLocation, endLocation);
-    const repairedRoads = await getUnpassableRoadCoordinates();
+    async function handleRerouting(destinationLocation) {
+      let startLocation = { latitude: location.latitude, longitude: location.longitude };
+      let endLocation = { latitude: destinationLocation.latitude, longitude: destinationLocation.longitude };
+          try {
+            const data = await routingFunction.requestRoute(startLocation, endLocation);
+            const repairedRoads = await getUnpassableRoadCoordinates();
 
-    if (data && data.routes && data.routes.length > 0) {
-      const encodedPolyline = data.routes[0].geometry;
-      const decodedCoordinates = polyline.decode(encodedPolyline).map(coord => ({
-        latitude: coord[0],
-        longitude: coord[1]
-      }));
+            if (data && data.routes && data.routes.length > 0) {
+              const encodedPolyline = data.routes[0].geometry;
+              const decodedCoordinates = polyline.decode(encodedPolyline).map(coord => ({
+                latitude: coord[0],
+                longitude: coord[1]
+              }));
 
-      const rerouteNeeded = checkForRepairedRoads(decodedCoordinates, repairedRoads);
+              const rerouteNeeded = checkForRepairedRoads(decodedCoordinates, repairedRoads);
 
-      if (rerouteNeeded ) {
-        console.log("Repair on route detected. Adjusting route...",repairedRoads);
-        Alert.alert("Route adjusted", "We adjusted your route due to reported road issues.");
-        const alternativeRoute = await findAlternativeRoute(startLocation, endLocation,repairedRoads);
-        
-        if (alternativeRoute && alternativeRoute.length > 0) {  
-          console.log("Alternative route:", alternativeRoute);
-          setRoute([]); 
-          setTimeout(() => {
-            setRoute(alternativeRoute)
-          }, 50);
-        } else {
-          console.warn("No alternative route found.");
-        }
-      } else {
-        console.log("No repair on route. Using default route.");
-        setRoute(decodedCoordinates);
-      }
-      
-    } else {
-      console.warn('No route found. Response data:', data);
-      alert('No route found from the current location to the destination.');
+                  if (rerouteNeeded ) {
+                    Alert.alert("Route adjusted", "We adjusted your route due to reported road issues.");
+                    const alternativeRoute = await findAlternativeRoute(startLocation, endLocation,repairedRoads);
+                    
+                            if (alternativeRoute && alternativeRoute.length > 0) {  
+                              console.log("Alternative route:", alternativeRoute);
+                              setRoute([]); 
+                              setTimeout(() => { setRoute(alternativeRoute)}, 50);
+                            } else {
+                              console.warn("No alternative route found.");
+                            }
+                          } else {
+                            console.log("No repair on route. Using default route.");
+                            setRoute(decodedCoordinates);
+                          }
+                    } else {
+                    Alert.alert("No route found",'No route found from the current location to the destination.');
+                  }
+          } catch (error) {
+            Alert.alert("Something went wrong",'Error fetching route. Please try again later.');
+          }
     }
-  } catch (error) {
-    console.error('Error fetching route:', error);
-    alert('Error fetching route. Please try again later.');
-  }
-}
 
   
   function checkForRepairedRoads(routeCoordinates, repairedRoads) {
@@ -145,6 +136,7 @@ async function handleRerouting(destinationLocation) {
           return true; 
         }
       }
+
     }
     return false; 
   }
@@ -199,17 +191,16 @@ async function handleRerouting(destinationLocation) {
   }
   
   
-    // TODO: I fix ang filtering sa report severity 
 
     async function getUnpassableRoadCoordinates() {
       const coordinates = reportData
         .filter(report => {
           if (report.type === 'vehicle collision') {
-            return report.severity === 'high';
+            return report.passable === 'false';
           } else if (report.type === 'road defects') {  
-            return report.status === 'Under Construction';
+            return report.passable === 'false';
           }
-          return false;
+          return false; 
         })
         .map(report => ({
           latitude: parseFloat(report.latitude),

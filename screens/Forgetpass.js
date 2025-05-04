@@ -3,6 +3,7 @@ import {View,Text,TextInput,TouchableOpacity,StyleSheet,Alert,SafeAreaView,Activ
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import ChangePassword from "../Functions/changePassword"
+import ForgotPasswordFunctions from "../Functions/forgotPassword"
 
 import {useFonts,Poppins_400Regular,Poppins_500Medium,Poppins_600SemiBold,} from "@expo-google-fonts/poppins";
 
@@ -27,8 +28,8 @@ const ForgotPasswordScreen = () => {
       return;
     }
     try{
-      const change_password = new ChangePassword()
-      let isSuccess = await change_password.changePassSendpin(email)
+      const change_password = new ForgotPasswordFunctions()
+      let isSuccess = await change_password.forgotPasswordSendPin(email)
       if(!isSuccess){
         Alert.alert(`Something went wrong`,'Unable to process your request')
         return
@@ -41,8 +42,8 @@ const ForgotPasswordScreen = () => {
 
   async function handleConfirmPin() {
     try {
-      const change_password = new ChangePassword();
-      const result = await change_password.changePassVerifyPin(pin,email);
+      const change_password = new ForgotPasswordFunctions()
+      const result = await change_password.forgotPasswordVerifyPin(pin,email);
       if (!result) {
         Alert.alert("Error", "Invalid or expired PIN");
         return;

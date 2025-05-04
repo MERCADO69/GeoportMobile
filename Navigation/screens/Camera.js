@@ -35,10 +35,9 @@ export default function Camera() {
             const parsedSettings = JSON.parse(isCameraAccessible);
             const isEnabled = !!parsedSettings.cameraAccess; 
             setIsCameraAccessible(isEnabled);
-            console.log("The configured settings is ",JSON.stringify(isEnabled));
           }
         } catch (error) {
-          console.error('Failed to load settings:', error);
+          Alert.alert("Something went wrong",'Failed to load settings:');
         }
       };
 
@@ -114,15 +113,9 @@ export default function Camera() {
         setModalStatus('error');
         return; 
       }
-  
       const imageurl = uploadImage;
-      console.log('Trying to save to database...');
-    
-      console.log("the location is ",loc)
       const store = await StoreReportToDatabase(imageurl, report_type,loc);
-      console.log("submitReport function executed");
       if (!store.success) {
-        console.log('Unable to upload to database');
         setReportMessage('Something went wrong. Unable to process request');
         setModalStatus('error');
         return; 

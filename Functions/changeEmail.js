@@ -1,6 +1,7 @@
-import { auth } from '../firebaseConfig';  
+import { auth } from "../firebaseConfig";  
+import api from "../api/auth/api"
 import { CHANGE_EMAIL_SEND_PIN,SERVER_PORT,SERVER_IP,CHANGE_EMAIL_VERIFY_PIN,CHANGE_EMAIL } from '@env'
-import axios from 'axios';
+
 
 export default class ChangeEmail{
 
@@ -10,22 +11,14 @@ export default class ChangeEmail{
             throw new Error('User not logged in');
         }
         let id = user.uid;
-        let token = await user.getIdToken();
-
-        return {id,token};
+        return id;
     }
 
   async handleSendpin(){    
         try{
-            console.log('trying to send pin')
-            const {id,token} = await this.credentials();
-            const url = `http://${SERVER_IP}:${SERVER_PORT}/${CHANGE_EMAIL_SEND_PIN}/${id}`;
-            const response = await axios.post(url,{},{
-                headers:{
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                }
-            });
+            const id = await this.credentials();
+            const url = `${CHANGE_EMAIL_SEND_PIN}/${id}`;
+            const response = await api.post(url);
       
             if(response.status !== 200){
                 throw new Error('Failed to send pin');
@@ -33,50 +26,42 @@ export default class ChangeEmail{
             return response.data;
         }catch(error){
             console.error('Error in sending pin ',error);
+            throw error;
         }
     }
 
 
    async handleVerifyPin(inputted_pin){
             try{
-                const {id,token} = await this.credentials();
-                const url = `http://${SERVER_IP}:${SERVER_PORT}/${CHANGE_EMAIL_VERIFY_PIN}/${id}`;
-                const isVerified = await axios.post(url,{inputted_pin},{
-                    headers:{
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    }
-                })
+                const id = await this.credentials();
+                const url = `${CHANGE_EMAIL_VERIFY_PIN}/${id}`;
+                const isVerified = await api.post(url,{inputted_pin})
 
                 if(isVerified.status !== 200){
                     throw new Error('Failed to verify pin');
                 }
-                console.log('Response:',isVerified.data)
                 return isVerified.data
             }catch(error){
                 console.error('Error in verifying pin ',error);
+                throw error;
             }
     }
 
 
   async handleChangeEmail(new_email){
         try{
-            console.log(typeof new_email);
-            const {id,token} = await this.credentials();
-            const url = `http://${SERVER_IP}:${SERVER_PORT}/${CHANGE_EMAIL}/${id}`;
-            const isEmailUpdated = await axios.post(url,{new_email},{
-                headers:{
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            }})
+            const id = await this.credentials();
+            const url = `${CHANGE_EMAIL}/${id}`;
+            const isEmailUpdated = await api.post(url,{new_email})
 
             if(isEmailUpdated.status !== 200){
                 throw new Error('Failed to update email');
             }
+
             return isEmailUpdated.data
         }catch(error){
             console.error('Error in updating email ',error);
+            throw error;
         }
     }
-
 }

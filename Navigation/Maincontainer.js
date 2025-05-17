@@ -59,12 +59,12 @@ export default function Maincontainer() {
                             iconName = focused ? 'ellipsis-horizontal' : 'ellipsis-horizontal-outline';
                         }
 
-                        return <Ionicons name={iconName} size={28} color={color} />;
+                        return <Ionicons name={iconName} size={25} color={color} />;
                     },
                     tabBarActiveTintColor: '#FA812F',
                     tabBarInactiveTintColor: 'grey',
                     tabBarLabelStyle: {
-                        paddingBottom: 15,
+                        paddingBottom: 3,
                         fontSize: 12,
                         fontFamily: "Poppins_400Regular",
                     },

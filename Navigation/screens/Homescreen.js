@@ -129,12 +129,12 @@ export default function Homescreen() {
     </SafeAreaView>
 
       <SafeAreaView>
-      <TouchableOpacity
+      {/* <TouchableOpacity
   style={styles.bellContainer}
   onPress={() => Alert.alert('Bell Icon Pressed')}
 >
   <Ionicons name="notifications-outline" size={28} color="#fff" />
-</TouchableOpacity>
+</TouchableOpacity> */}
 </SafeAreaView>
 
       {/* Search Bar */}

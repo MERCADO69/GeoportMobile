@@ -45,6 +45,8 @@ export default function MapsScreen() {
     };
 
 
+
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -86,7 +88,18 @@ export default function MapsScreen() {
 
 
 
+function decodePolyline(encoded, source = "ors") {
+  const coordinates = polyline.decode(encoded);
+
+  return source === "mapbox"
+    ? coordinates.map(([lng, lat]) => ({ latitude: lat, longitude: lng })) // Mapbox: [lng, lat]
+    : coordinates.map(([lat, lng]) => ({ latitude: lat, longitude: lng })); // ORS: [lat, lng]
+}
+
+
+
     async function handleRerouting(destinationLocation) {
+      
       let startLocation = { latitude: location.latitude, longitude: location.longitude };
       let endLocation = { latitude: destinationLocation.latitude, longitude: destinationLocation.longitude };
           try {
@@ -95,10 +108,9 @@ export default function MapsScreen() {
 
             if (data && data.routes && data.routes.length > 0) {
               const encodedPolyline = data.routes[0].geometry;
-              const decodedCoordinates = polyline.decode(encodedPolyline).map(coord => ({
-                latitude: coord[0],
-                longitude: coord[1]
-              }));
+              
+              const decodedCoordinates = decodePolyline(encodedPolyline, "ors");
+              console.log('Decoded Route:', decodedCoordinates);
 
               const rerouteNeeded = checkForRepairedRoads(decodedCoordinates, repairedRoads);
 
@@ -106,13 +118,13 @@ export default function MapsScreen() {
                     Alert.alert("Route adjusted", "We adjusted your route due to reported road issues.");
                     const alternativeRoute = await findAlternativeRoute(startLocation, endLocation,repairedRoads);
                     
-                            if (alternativeRoute && alternativeRoute.length > 0) {  
+                           if (alternativeRoute && alternativeRoute.length > 0) {
                               console.log("Alternative route:", alternativeRoute);
-                              setRoute([]); 
-                              setTimeout(() => { setRoute(alternativeRoute)}, 50);
+                              setRoute(alternativeRoute);  // Only set it once
                             } else {
                               console.warn("No alternative route found.");
                             }
+
                           } else {
                             console.log("No repair on route. Using default route.");
                             setRoute(decodedCoordinates);
@@ -158,37 +170,28 @@ export default function MapsScreen() {
   
   
   
-  async function findAlternativeRoute(startLocation, endLocation) {
-    try {
-      const defectNode = await getUnpassableRoadCoordinates();
-      setRoute([]);
-      const data = await routingFunction.requestReroute(startLocation, endLocation,defectNode);
-      
-      if (!data || data.length === 0) {
-        console.warn("No geometry or routes found in the response:", data);
-        return { mainRoute: null, alternatives: [] };
-      }
-  
-      const encodedPolyline = data;
-  
-      if (!encodedPolyline || typeof encodedPolyline !== "string") {
-        console.warn("No encoded polyline found:", encodedPolyline);
-        return [];
-      }
-  
-      console.log("Encoded polyline:", encodedPolyline);
+ async function findAlternativeRoute(startLocation, endLocation) {
+  try {
+    const defectNode = await getUnpassableRoadCoordinates();
+    setRoute([]);
 
-      const decodedCoordinates = polyline.decode(encodedPolyline).map(coord => ({
-        latitude: coord[0],
-        longitude: coord[1]
-      }));
-  
-      return decodedCoordinates;
-    } catch (error) {
-      console.error("Error in findAlternativeRoute:", error);
+    const decodedRoutes = await routingFunction.requestReroute(startLocation, endLocation, defectNode);
+
+    if (!decodedRoutes || decodedRoutes.length === 0) {
+      console.warn("No decoded routes returned");
       return [];
     }
+
+    console.log("Alternative decoded route:", decodedRoutes);
+
+    return Array.isArray(decodedRoutes[0]) ? decodedRoutes[0] : decodedRoutes;
+
+  } catch (error) {
+    console.error("Error in findAlternativeRoute:", error);
+    return [];
   }
+}
+
   
   
 

@@ -1,5 +1,6 @@
 import axios from "axios";
 import {SERVER_IP,APIkEY,mapbox_secret,auto_generated_mapbox_key} from "@env"
+import polyline from '@mapbox/polyline'; // Required for decodePolyline to work
 
 export default class RoutingFunction{
 
@@ -18,6 +19,7 @@ export default class RoutingFunction{
 
             if (response.data && response.data.routes) {
               console.log('Route data:', response.data.routes[0]);
+               console.log("============================================success routing=====================================")
                 return response.data
               } else {
                 console.error('No route data available');
@@ -26,6 +28,25 @@ export default class RoutingFunction{
             console.error("Error fetching route data: ", error);
         }
     }
+
+    
+    async decodePolyline(encoded, source = "ors") {
+          if (!encoded || typeof encoded !== "string") {
+            console.warn("Invalid polyline input:", encoded);
+            return [];
+          }
+          try {
+            const coordinates = polyline.decode(encoded);
+            return source === "mapbox"
+              ? coordinates.map(([lng, lat]) => ({ latitude: lat, longitude: lng }))
+              : coordinates.map(([lat, lng]) => ({ latitude: lat, longitude: lng }));
+          } catch (err) {
+            console.error("Failed to decode polyline:", err);
+            return [];
+          }
+        }
+
+
 
     async requestReroute(currentLocation, destinationLocation, defectNode) {
       console.log('====================================REROUTING==============================');
@@ -64,15 +85,15 @@ export default class RoutingFunction{
       try {
         console.log('the request reroute api url is ', apiUrl);
     
-        // Send the request to Mapbox API
         const response = await axios.get(apiUrl, {
           timeout: 5000
         });
     
-        // Check if the response contains valid routes
-        if (!response.data?.routes?.length) {
-          throw new Error('No routes found in response');
-        }
+       if (!response.data || !response.data.routes || response.data.routes.length === 0) {
+        console.error('No routes found in response:', response.data);
+        throw new Error('No routes found.');
+      }
+
     
         const mainRoute = {
           distance: response.data.routes[0].distance,
@@ -80,19 +101,23 @@ export default class RoutingFunction{
           geometry: response.data.routes[0].geometry
         };
     
-        // Process alternative routes if available
         const alternatives = response.data.routes.slice(1).map(route => ({
           distance: route.distance,
           duration: route.duration,
           geometry: route.geometry
         }));
-    
+
+
+
         if (alternatives.length > 0) {
-          return alternatives.map(route => route.geometry);
-        } else {
-          console.log('No alternative routes available, returning main route');
-          return mainRoute.geometry;
-        }
+            const decoded = await Promise.all(
+              alternatives.map(async route => await this.decodePolyline(route.geometry, "mapbox"))
+            );
+            return decoded;
+          } else {
+            return await this.decodePolyline(mainRoute.geometry, "mapbox");
+          }
+
       } catch (error) {
         console.error('Rerouting failed:', error.response?.data || error.message);
         throw error;

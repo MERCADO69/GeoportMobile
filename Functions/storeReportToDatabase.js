@@ -43,7 +43,7 @@ export default async function StoreReportToDatabase(imageurl, report_type,loc) {
       longitude: longitude.toString() 
     },
     email:email,
-    passable: "false",
+    passable: "true",
     reference: id,             
     reporter: name,          
     status: "Pending"    

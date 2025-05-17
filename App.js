@@ -50,7 +50,7 @@ function app() {
       console.log("Background Notification Extra Data:", info);
     
     });
-
+ 
     return () => {
       foregroundSubscription.remove();
       backgroundSubscription.remove();

@@ -1,13 +1,23 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator } from "react-native";
 import { useForm } from "react-hook-form";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, Dimensions, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  Dimensions,
+  Platform,
+} from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth } from "../firebaseConfig";
-import { onAuthStateChanged  } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import loginFunction from "../Functions/loginFunction";
-import useGoogleAuth  from "../Functions/continueWithGoogle";
+import useGoogleAuth from "../Functions/continueWithGoogle";
 import Mylogo from "../Images/Geo.svg";
 import Tagline from "../Images/Sibya.svg";
 import FB from "../Images/facebook.svg";
@@ -20,61 +30,77 @@ WebBrowser.maybeCompleteAuthSession();
 export default function LoginScreen({ navigation }) {
   const { width, height } = Dimensions.get("window");
   const insets = useSafeAreaInsets();
-  const { promptAsync } = useGoogleAuth(); 
-  const { register, handleSubmit, setValue, watch } = useForm({ mode: "onChange" });
-  
+  const { promptAsync } = useGoogleAuth();
+  const { register, handleSubmit, setValue, watch } = useForm({
+    mode: "onChange",
+  });
+
   const email = watch("email", "");
   const password = watch("password", "");
-  
+  const [loading, setLoading] = useState(false);
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const isDisabled = !isValidEmail(email) || password.length < 6;
-
-    
-
-
+  const isDisabled = !isValidEmail(email) || password.length < 6 || loading;
 
   const handleLogin = async (data) => {
     try {
+      setLoading(true);
       const tryToLogin = await loginFunction(data.email, data.password);
-      if (tryToLogin && tryToLogin.email) { 
-        navigation.navigate("homepage"); 
-      }  else {
+      if (tryToLogin && tryToLogin.email) {
+        setLoading(false);
+        navigation.navigate("homepage");
+      } else {
         Alert.alert("Error", "Invalid login credentials.");
       }
     } catch (error) {
       Alert.alert("Error", error.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
     }
   };
 
-
-
-
   return (
-    <View style={[styles.container, { paddingBottom: Platform.OS === "android" ? 0 : insets.bottom }]}> 
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
-      <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+    <View
+      style={[
+        styles.container,
+        { paddingBottom: Platform.OS === "android" ? 0 : insets.bottom },
+      ]}
+    >
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="transparent"
+        translucent={true}
+      />
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <SafeAreaView style={styles.innerContainer}>
           <View style={styles.logoContainer}>
             <Mylogo width={width * 0.7} height={height * 0.2} />
-            <Tagline width={width * 0.6} height={height * 0.07} style={styles.tagline} />
+            <Tagline
+              width={width * 0.6}
+              height={height * 0.07}
+              style={styles.tagline}
+            />
           </View>
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email address</Text>
-            <TextInput 
-              style={styles.input} 
-              keyboardType="email-address" 
-              placeholder="example@gmail.com" 
+            <TextInput
+              style={styles.input}
+              keyboardType="email-address"
+              placeholder="example@gmail.com"
               placeholderTextColor="#A9A9A9"
               autoCapitalize="none"
               autoCorrect={false}
               onChangeText={(text) => setValue("email", text)}
             />
             <Text style={styles.label}>Password</Text>
-            <TextInput 
-              style={styles.input} 
-              secureTextEntry 
-              placeholder="Password (Min. 6 characters)" 
+            <TextInput
+              style={styles.input}
+              secureTextEntry
+              placeholder="Password (Min. 6 characters)"
               placeholderTextColor="#A9A9A9"
               autoCapitalize="none"
               autoCorrect={false}
@@ -82,26 +108,37 @@ export default function LoginScreen({ navigation }) {
             />
           </View>
 
-          <TouchableOpacity 
-            style={[styles.loginButton, isDisabled && { opacity: 0.5 }]} 
+          <TouchableOpacity
+            style={[styles.loginButton, isDisabled && { opacity: 0.5 }]}
             onPress={handleSubmit(handleLogin)}
             disabled={isDisabled}
           >
-            <Text style={styles.loginText}>Login</Text>
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.loginText}>Login</Text>
+            )}
           </TouchableOpacity>
 
-          <Either width={width * 0.8} height={height * 0.05} style={styles.either} />
+          <Either
+            width={width * 0.8}
+            height={height * 0.05}
+            style={styles.either}
+          />
 
           <View style={styles.authContainer}>
             <TouchableOpacity style={styles.authButton} onPress={() => {}}>
               <FB width={40} height={40} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.authButton}  onPress={() =>handleSignup() }>
+            <TouchableOpacity
+              style={styles.authButton}
+              onPress={() => handleSignup()}
+            >
               <ContinueG width={40} height={40} />
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity onPress={() => navigation.navigate('ForgotPass')}>
+          <TouchableOpacity onPress={() => navigation.navigate("ForgotPass")}>
             <Text style={styles.forgotPassword}>Forgot Password?</Text>
           </TouchableOpacity>
         </SafeAreaView>
@@ -111,30 +148,30 @@ export default function LoginScreen({ navigation }) {
 }
 // CSS / StyleSheet for the component
 const styles = {
-  container: { 
-    flex: 1, 
+  container: {
+    flex: 1,
     backgroundColor: "#FEFEFE",
   },
-  scrollContainer: { 
-    flexGrow: 1, 
-    justifyContent: "center", 
-    alignItems: "center" 
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  innerContainer: { 
-    alignItems: "center", 
-    width: "90%" 
+  innerContainer: {
+    alignItems: "center",
+    width: "90%",
   },
-  logoContainer: { 
-    alignItems: "center", 
-    justifyContent: "center", 
-    marginBottom: 50 
+  logoContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 50,
   },
   tagline: { marginTop: -5 },
   inputContainer: { width: "97%" },
-  label: { 
-    fontFamily: 'Poppins_500Medium', 
-    color: "gray", 
-    marginBottom: 5 
+  label: {
+    fontFamily: "Poppins_500Medium",
+    color: "gray",
+    marginBottom: 5,
   },
   input: {
     backgroundColor: "#FDFDFD",
@@ -157,26 +194,26 @@ const styles = {
     width: "97%",
     marginBottom: 20,
   },
-  loginText: { 
-    fontSize: 18, 
-    fontFamily: "Poppins_500Medium", 
-    color: "white" 
+  loginText: {
+    fontSize: 18,
+    fontFamily: "Poppins_500Medium",
+    color: "white",
   },
-  
+
   either: { marginVertical: 15 },
-  authContainer: { 
-    flexDirection: "row", 
-    justifyContent: "center", 
-    gap: 20, 
-    marginTop: 20 
+  authContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 20,
+    marginTop: 20,
   },
   authButton: { alignItems: "center" },
   forgotPassword: {
-    fontFamily: "Poppins_500Medium", 
-    color: "#FA812F", 
-    fontSize: 12, 
-    textAlign: "center", 
-    marginTop: 60, 
+    fontFamily: "Poppins_500Medium",
+    color: "#FA812F",
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 60,
     marginBottom: 20,
-  }
+  },
 };

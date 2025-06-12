@@ -1,141 +1,133 @@
-import axios from "axios";
-import {
-  SERVER_IP,
-  APIkEY,
-  mapbox_secret,
-  auto_generated_mapbox_key,
-} from "@env";
-import polyline from "@mapbox/polyline"; // Required for decodePolyline to work
+import api from "../api/auth/api";
+import { REQUEST_ROUTE, REQUEST_REROUTE } from "@env";
+import polyline from "@mapbox/polyline";
+import { auth } from "../firebaseConfig";
 
-export default class RoutingFunction {
-  async requestRoute(currentLocation, destinationLocation) {
-    console.log("running requestRoute");
-    console.log(destinationLocation);
-    let location = this.storeCurrentLocation(
-      currentLocation,
-      destinationLocation
+export async function requestRoute(currentLocation, destinationLocation) {
+  console.log("requesting route");
+  let location = storeCurrentLocation(currentLocation, destinationLocation);
+  try {
+    let user = auth.currentUser;
+    if (!user) {
+      console.error("User is not authenticated");
+      return;
+    }
+    let id = user.uid;
+
+    let start_latitude = location.start?.latitude;
+    let start_longitude = location.start?.longitude;
+    let end_latitude = location.end?.latitude;
+    let end_longitude = location.end?.longitude;
+
+    let url = `${REQUEST_ROUTE}/${id}`;
+    const response = await api.post(url, {
+      start_latitude,
+      start_longitude,
+      end_latitude,
+      end_longitude,
+    });
+
+    if (response.data && response.data.data && response.data.data.geometry) {
+      let geometry = response.data.data.geometry;
+      let duration = response.data.data.duration;
+      let distance = response.data.data.distance;
+      let { encodedPolyline, latLngCoordinates } = await ConvertToPolyline(
+        geometry
+      );
+
+      const decoded_data = polyline
+        .decode(encodedPolyline)
+        .map(([lat, lng]) => ({
+          latitude: lat,
+          longitude: lng,
+        }));
+      return { decoded_data, latLngCoordinates, duration, distance };
+    }
+  } catch (error) {
+    console.error("Error fetching route data: ", error);
+  }
+}
+
+async function ConvertToPolyline(geometry) {
+  try {
+    if (!geometry || !geometry.coordinates || geometry.type !== "LineString") {
+      console.warn("Invalid geometry data provided");
+      return null;
+    }
+
+    const latLngCoordinates = geometry.coordinates.map((coord) => ({
+      latitude: coord[1],
+      longitude: coord[0],
+    }));
+
+    const encodedPolyline = polyline.encode(
+      geometry.coordinates.map((coord) => [coord[1], coord[0]])
     );
-    try {
-      let startLatitude = location.start?.latitude;
-      let startLongitude = location.start?.longitude;
-      let endLatitude = location.end?.latitude;
-      let endLongitude = location.end?.longitude;
 
-      let url = `http://${SERVER_IP}:5000/route/v1/driving/${startLongitude},${startLatitude};${endLongitude},${endLatitude}?overview=full`;
-      const response = await axios.get(url, { timeout: 30000 });
-
-      if (response.data && response.data.routes) {
-        console.log("Route data:", response.data.routes[0]);
-        console.log(
-          "============================================success routing====================================="
-        );
-        return response.data;
-      } else {
-        console.error("No route data available");
-      }
-    } catch (error) {
-      console.error("Error fetching route data: ", error);
-    }
+    return { encodedPolyline, latLngCoordinates };
+  } catch (error) {
+    console.error("Error converting to polyline:", error);
+    return null;
   }
+}
 
-  async decodePolyline(encoded, source = "ors") {
-    if (!encoded || typeof encoded !== "string") {
-      console.warn("Invalid polyline input:", encoded);
-      return [];
+export async function requestReroute(
+  currentLocation,
+  destinationLocation,
+  defectNode
+) {
+  try {
+    let location = storeCurrentLocation(currentLocation, destinationLocation);
+    let user = auth.currentUser;
+    if (!user) {
+      console.error("User is not authenticated");
+      return;
     }
-    try {
-      const coordinates = polyline.decode(encoded);
-      return source === "mapbox"
-        ? coordinates.map(([lng, lat]) => ({ latitude: lat, longitude: lng }))
-        : coordinates.map(([lat, lng]) => ({ latitude: lat, longitude: lng }));
-    } catch (err) {
-      console.error("Failed to decode polyline:", err);
-      return [];
+    let id = user.uid;
+
+    let start_latitude = location.start?.latitude;
+    let start_longitude = location.start?.longitude;
+    let end_latitude = location.end?.latitude;
+    let end_longitude = location.end?.longitude;
+
+    let defectCoordinates = Array.isArray(defectNode)
+      ? defectNode.map(({ latitude, longitude }) => ({ latitude, longitude }))
+      : [{ latitude: defectNode.latitude, longitude: defectNode.longitude }];
+
+    let url = `${REQUEST_REROUTE}/${id}`;
+    const response = await api.post(url, {
+      start_latitude,
+      start_longitude,
+      end_latitude,
+      end_longitude,
+      defect_nodes: defectCoordinates,
+    });
+
+    if (response.data && response.data.data && response.data.data.geometry) {
+      let geometry = response.data.data.geometry;
+      let duration = response.data.data.properties.duration;
+      let distance = response.data.data.properties.distance;
+      let { encodedPolyline, latLngCoordinates } = await ConvertToPolyline(
+        geometry
+      );
+
+      const decoded_data = polyline
+        .decode(encodedPolyline)
+        .map(([lat, lng]) => ({
+          latitude: lat,
+          longitude: lng,
+        }));
+
+      return { decoded_data, latLngCoordinates, duration, distance };
     }
+  } catch (error) {
+    console.error("Error in requestReroute:", error);
+    return null;
   }
+}
 
-  async requestReroute(currentLocation, destinationLocation, defectNode) {
-    console.log(
-      "====================================REROUTING=============================="
-    );
-    const url = "https://api.mapbox.com/directions/v5/mapbox/driving/";
-    console.log("defect node is ", defectNode);
-
-    if (!currentLocation || !destinationLocation) {
-      throw new Error("Both current and destination locations are required");
-    }
-
-    const coordinates = [
-      `${currentLocation.longitude},${currentLocation.latitude}`,
-      `${destinationLocation.longitude},${destinationLocation.latitude}`,
-    ].join(";");
-
-    let excludeParam = "";
-    let apiUrl = "";
-    if (defectNode && Array.isArray(defectNode) && defectNode.length > 0) {
-      const exclusionPoints = defectNode
-        .filter((node) => !isNaN(node.latitude) && !isNaN(node.longitude))
-        .map(
-          (node) =>
-            `point(${node.longitude.toFixed(6)}%20${node.latitude.toFixed(6)})`
-        );
-
-      if (exclusionPoints.length > 0) {
-        excludeParam = `exclude=${exclusionPoints.join(",")}`;
-      }
-    }
-
-    if (excludeParam) {
-      apiUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?alternatives=true&${excludeParam}&access_token=${auto_generated_mapbox_key}`;
-    }
-
-    try {
-      console.log("the request reroute api url is ", apiUrl);
-
-      const response = await axios.get(apiUrl, {
-        timeout: 5000,
-      });
-
-      if (
-        !response.data ||
-        !response.data.routes ||
-        response.data.routes.length === 0
-      ) {
-        console.error("No routes found in response:", response.data);
-        throw new Error("No routes found.");
-      }
-
-      const mainRoute = {
-        distance: response.data.routes[0].distance,
-        duration: response.data.routes[0].duration,
-        geometry: response.data.routes[0].geometry,
-      };
-
-      const alternatives = response.data.routes.slice(1).map((route) => ({
-        distance: route.distance,
-        duration: route.duration,
-        geometry: route.geometry,
-      }));
-
-      if (alternatives.length > 0) {
-        const decoded = await Promise.all(
-          alternatives.map(
-            async (route) => await this.decodePolyline(route.geometry, "mapbox")
-          )
-        );
-        return decoded;
-      } else {
-        return await this.decodePolyline(mainRoute.geometry, "mapbox");
-      }
-    } catch (error) {
-      console.error("Rerouting failed:", error.response?.data || error.message);
-      throw error;
-    }
-  }
-
-  storeCurrentLocation(currentLocation, destinationLocation) {
-    const start = currentLocation;
-    const end = destinationLocation;
-    return { start, end };
-  }
+function storeCurrentLocation(currentLocation, destinationLocation) {
+  const start = currentLocation;
+  const end = destinationLocation;
+  return { start, end };
 }

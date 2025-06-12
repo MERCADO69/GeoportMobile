@@ -14,6 +14,7 @@ api.interceptors.request.use(
     const user = auth.currentUser;
     if (user) {
       const token = await user.getIdToken();
+      console.log(token);
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -22,4 +23,3 @@ api.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-

@@ -1,18 +1,30 @@
 import React, { useState } from "react";
-import {View,Text,TextInput,TouchableOpacity,StyleSheet,Alert,SafeAreaView,ActivityIndicator,} from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  SafeAreaView,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import {useFonts,Poppins_400Regular,Poppins_500Medium,Poppins_600SemiBold,} from "@expo-google-fonts/poppins";
+import {
+  useFonts,
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+} from "@expo-google-fonts/poppins";
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
 
-  // Load fonts
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_600SemiBold,
   });
-
 
   const handleSendVerificationCode = () => {
     if (!email) {
@@ -56,62 +68,62 @@ const ForgotPasswordScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-    safeArea: {
-      flex: 1,
-      backgroundColor: "#fff",
-    },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginHorizontal: 16,
-      marginTop: 60, // Fixed the value here (removed quotes)
-      marginBottom: 8,
-    },
-    headerText: {
-      fontSize: 16,
-      marginLeft: 8,
-      fontFamily: "Poppins_600SemiBold",
-    },
-    container: {
-      flex: 1,
-      paddingHorizontal: 16,
-    },
-    body: {
-      marginTop: 16,
-    },
-    label: {
-      fontSize: 13,
-      fontWeight: "500",
-      marginBottom: 8,
-      fontFamily: "Poppins_400Regular",
-    },
-    inputContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: "#ccc",
-      borderRadius: 8,
-      paddingHorizontal: 8,
-      marginBottom: 16,
-    },
-    input: {
-      flex: 1,
-      marginLeft: 8,
-      fontSize: 14,
-      fontFamily: "Poppins_400Regular",
-      height: 50, // Added fixed height to stabilize the input field
-    },
-    button: {
-      backgroundColor: "#FF7F00",
-      paddingVertical: 12,
-      borderRadius: 8,
-      alignItems: "center",
-    },
-    buttonText: {
-      color: "#fff",
-      fontSize: 14,
-      fontFamily: "Poppins_500Medium",
-    },
-  });
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 16,
+    marginTop: 60, // Fixed the value here (removed quotes)
+    marginBottom: 8,
+  },
+  headerText: {
+    fontSize: 16,
+    marginLeft: 8,
+    fontFamily: "Poppins_600SemiBold",
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  body: {
+    marginTop: 16,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: "500",
+    marginBottom: 8,
+    fontFamily: "Poppins_400Regular",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    marginBottom: 16,
+  },
+  input: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 14,
+    fontFamily: "Poppins_400Regular",
+    height: 50, // Added fixed height to stabilize the input field
+  },
+  button: {
+    backgroundColor: "#FF7F00",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontFamily: "Poppins_500Medium",
+  },
+});
 
 export default ForgotPasswordScreen;

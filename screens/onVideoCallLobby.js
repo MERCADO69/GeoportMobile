@@ -9,10 +9,12 @@ import {
 } from "react-native";
 import LottieView from "lottie-react-native";
 import HangupIcon from "../assets/end_call.svg";
+import connectCall from "../Functions/connectToLivekitCall";
+import { LIVEKIT_WS_URL } from "@env";
 
 const { width } = Dimensions.get("window");
 
-export default function CallVerificationPage({ navigation }) {
+export default function OnVideoCallPage({ navigation, room_token }) {
   const [callTime, setCallTime] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => {
@@ -32,23 +34,14 @@ export default function CallVerificationPage({ navigation }) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <Text style={styles.callerName}>Akali</Text>
-      <Text style={styles.callStatus}>On Call • {formatTime(callTime)}</Text>
-
-      <LottieView
-        source={require("../assets/voice_animation.json")}
-        autoPlay
-        loop
-        style={styles.lottie}
-      />
+      <Text style={styles.callStatus}>
+        On Video Call • {formatTime(callTime)}
+      </Text>
 
       <TouchableOpacity
         style={styles.hangupButton}
         onPress={() => {
-          if (navigation.canGoBack()) {
-            navigation.goBack();
-          } else {
-            navigation.navigate("homepage");
-          }
+          navigation.navigate("homepage");
         }}
       >
         <HangupIcon width={34} height={34} fill="#fff" />

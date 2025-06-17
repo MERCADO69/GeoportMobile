@@ -1,17 +1,21 @@
 import { SEND_REPORT_ENDPOINT, SERVER_PORT, SERVER_IP } from "@env";
 import GetUserData from "../Functions/getUserData";
 import { auth } from "../firebaseConfig";
-import deleteFromCloudinary from "../Functions/cloudinaryRemoveImage"
+import deleteFromCloudinary from "../Functions/cloudinaryRemoveImage";
+import submitGeneratedRoomId from "../Functions/generateRoomId";
 import axios from "axios";
 
-export default async function StoreReportToDatabase(imageurl, report_type,loc) {
-
+export default async function StoreReportToDatabase(
+  imageurl,
+  report_type,
+  loc
+) {
   const url = `http://${SERVER_IP}:${SERVER_PORT}/${SEND_REPORT_ENDPOINT}`;
- 
+
   let user = auth.currentUser;
 
   if (!user) {
-    console.log('current user is not authenticated')
+    console.log("current user is not authenticated");
     return {
       success: false,
       message: "User not authenticated.",
@@ -22,36 +26,30 @@ export default async function StoreReportToDatabase(imageurl, report_type,loc) {
   let email = user.email;
   let id = user.uid;
   let dateTime = getCurrentTimestamp();
- 
+
   let { latitude, longitude } = loc;
   const user_data = await GetUserData();
   let name = user_data.data.name;
-  
+
   if (!user_data.data) {
-    return {success: false,message: "Failed to retrieve user data."};
+    return { success: false, message: "Failed to retrieve user data." };
   }
 
-  
-
   const dataTobeSave = {
-    DateAndTime: dateTime,   
+    DateAndTime: dateTime,
     Severity: "true",
-    TypeOfReport: report_type, 
-    image: imageurl,           
-    location: {              
-      latitude: latitude.toString(),  
-      longitude: longitude.toString() 
+    TypeOfReport: report_type,
+    image: imageurl,
+    location: {
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
     },
-    email:email,
+    email: email,
     passable: "true",
-    reference: id,             
-    reporter: name,          
-    status: "Pending"    
+    reference: id,
+    reporter: name,
+    status: "Pending",
   };
-  
-  
-
-  console.log("Submitting data:", dataTobeSave);
 
   try {
     const response = await axios.post(url, dataTobeSave, {
@@ -62,24 +60,26 @@ export default async function StoreReportToDatabase(imageurl, report_type,loc) {
     });
 
     if (!response || !response.data) {
-      console.log(response.message)
+      console.log(response.message);
 
-       const removeImage = await deleteFromCloudinary(imageurl)
-       if(!removeImage){
-         return {
-           success: false,
-           message: "No response from server. Check your network connection.Unable to remove the image to image hosting platform.",
-         };
-       }
+      const removeImage = await deleteFromCloudinary(imageurl);
+      if (!removeImage) {
+        return {
+          success: false,
+          message:
+            "No response from server. Check your network connection.Unable to remove the image to image hosting platform.",
+        };
+      }
       return {
         success: false,
         message: "No response from server. Check your network connection.",
       };
     }
-    console.log('successfull submitted the report')
+    await submitGeneratedRoomId();
     return {
       success: true,
-      message: response.data.response_message || "Report submitted successfully.",
+      message:
+        response.data.response_message || "Report submitted successfully.",
     };
   } catch (error) {
     console.error("Error submitting report:", error);
@@ -90,8 +90,6 @@ export default async function StoreReportToDatabase(imageurl, report_type,loc) {
   }
 }
 
-function getCurrentTimestamp(){
+function getCurrentTimestamp() {
   return new Date().toISOString().slice(0, 19);
-};
-
-
+}

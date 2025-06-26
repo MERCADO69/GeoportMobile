@@ -8,7 +8,6 @@
     "icon": "./assets/icon.png",
     "scheme": "geoportmalaybalay",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -16,24 +15,48 @@
     },
     "android": {
       "package": "com.anonymous.GeoportMalaybalay",
-      "googleServicesFile": "./android/app/google-services.json",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "ACCESS_FINE_LOCATION",
+        "NOTIFICATIONS"
+      ]
+    },
+    "ios": {
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Allow GeoportMalaybalay to access your camera",
+        "NSMicrophoneUsageDescription": "Allow GeoportMalaybalay to access your microphone",
+        "NSLocationWhenInUseUsageDescription": "GeoportMalaybalay uses your location to provide routing features",
+        "NSUserTrackingUsageDescription": "GeoportMalaybalay uses tracking for app analytics and push notifications"
       }
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "ios": {
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
-    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow GeoportMalaybalay to access your camera",
+          "microphonePermission": "Allow GeoportMalaybalay to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ],
+      "expo-notifications",
+      "expo-location",
+      "expo-image-picker"
+    ],
     "extra": {
       "eas": {
         "projectId": "25d1864e-9bcb-4ae7-bc10-ec8ee8e25efb"
       }
-    }
+    },
+    "newArchEnabled": true
   }
 }

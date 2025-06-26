@@ -43,7 +43,7 @@ export default function Homescreen() {
   const [lastdateReported, setLastReportedDate] = useState("");
   const [listofReports, setListReports] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedReport, setSelectedImage] = useState(null);
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -206,7 +206,6 @@ export default function Homescreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Quick Actions Section */}
         <View>
           <Text style={[styles.Quickie]}>Quick Action</Text>
         </View>
@@ -214,10 +213,9 @@ export default function Homescreen() {
         <DisplayReportImage
           isVisible={isModalVisible}
           onClose={() => setIsModalVisible(false)}
-          imageUrl={selectedImage}
+          data={selectedReport}
         />
 
-        {/* New Report Button with Icon */}
         <TouchableOpacity
           style={styles.Quickbutton}
           onPress={() => navigation.navigate("Camera")}
@@ -246,7 +244,7 @@ export default function Homescreen() {
                   key={index}
                   style={[styles.card, styles.cardNewType]}
                   onPress={() => {
-                    setSelectedImage(report.image);
+                    setSelectedImage(report);
                     setIsModalVisible(true);
                   }}
                 >

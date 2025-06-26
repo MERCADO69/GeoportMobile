@@ -27,6 +27,7 @@ export default async function FetchReportedReports() {
         Authorization: `Bearer ${token}`,
       },
     });
+    
     return response.data;
   } catch (error) {
     console.error("fetch reported reports ", error.message);

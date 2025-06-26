@@ -7,14 +7,15 @@ import {
   SafeAreaView,
   Dimensions,
 } from "react-native";
-import LottieView from "lottie-react-native";
-import HangupIcon from "../assets/end_call.svg";
-
+import { WebView } from "react-native-webview";
 const { width } = Dimensions.get("window");
+import { LIVEKIT_WS_URL } from "@env";
 
-export default function OnCallPage({ navigation, room_token }) {
+export default function OnCallPage({ navigation, route }) {
+  const { room_token } = route.params;
   const [callTime, setCallTime] = useState(0);
   useEffect(() => {
+    console.log("The room token issssss ", room_token);
     const interval = setInterval(() => {
       setCallTime((prev) => prev + 1);
     }, 1000);
@@ -31,24 +32,14 @@ export default function OnCallPage({ navigation, room_token }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Text style={styles.callerName}>Akali</Text>
-      <Text style={styles.callStatus}>On Call • {formatTime(callTime)}</Text>
-
-      <LottieView
-        source={require("../assets/voice_animation.json")}
-        autoPlay
-        loop
-        style={styles.lottie}
-      />
-
-      <TouchableOpacity
-        style={styles.hangupButton}
-        onPress={() => {
-          navigation.navigate("homepage");
+      <WebView
+        source={{
+          uri: `https://livekit-web-host.netlify.app/livekit-setup/${encodeURIComponent(
+            room_token
+          )}`,
         }}
-      >
-        <HangupIcon width={34} height={34} fill="#fff" />
-      </TouchableOpacity>
+        style={{ flex: 1 }}
+      />
     </SafeAreaView>
   );
 }

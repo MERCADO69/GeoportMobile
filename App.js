@@ -45,7 +45,6 @@ function App() {
       if (status !== "granted") {
         const { status: newStatus } =
           await Notifications.requestPermissionsAsync();
-        console.log("🔐 Notification permission status:", newStatus);
       } else {
         console.log("🔐 Notification permission granted");
       }
@@ -82,11 +81,7 @@ function App() {
   useEffect(() => {
     const foregroundSubscription =
       Notifications.addNotificationReceivedListener((notification) => {
-        console.log(">>> Foreground Notification Received");
-        console.log("Full content:", JSON.stringify(notification, null, 2));
         const { type, room_token } = notification.request.content.data;
-
-        console.log("Foreground Notification Title:", type);
 
         if (type?.toLowerCase() === "call" || type?.toLowerCase() === "video") {
           navigate("CallLobby", { type, room_token });

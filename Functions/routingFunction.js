@@ -104,21 +104,15 @@ export async function requestReroute(
     });
 
     if (response.data && response.data.data && response.data.data.geometry) {
-      let geometry = response.data.data.geometry;
+      let geojsonFeature = response.data.data;
+      let route_data = geojsonFeature.geometry;
       let duration = response.data.data.properties.duration;
       let distance = response.data.data.properties.distance;
       let { encodedPolyline, latLngCoordinates } = await ConvertToPolyline(
-        geometry
+        route_data
       );
 
-      const decoded_data = polyline
-        .decode(encodedPolyline)
-        .map(([lat, lng]) => ({
-          latitude: lat,
-          longitude: lng,
-        }));
-
-      return { decoded_data, latLngCoordinates, duration, distance };
+      return { geojsonFeature, latLngCoordinates, duration, distance };
     }
   } catch (error) {
     console.error("Error in requestReroute:", error);

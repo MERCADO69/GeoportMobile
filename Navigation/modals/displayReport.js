@@ -1,75 +1,102 @@
-import Modal from 'react-native-modal';
-import React, { useState } from 'react';
-import LottieView from 'lottie-react-native';
-import { View, Image, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import Modal from "react-native-modal";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function DisplayReportImage({ isVisible, onClose, imageUrl }) {
-    const [loading, setLoading] = useState(true);
+const { width } = Dimensions.get("window");
 
-    return (
-        <Modal isVisible={isVisible} animationIn="zoomIn" animationOut="zoomOut" onBackdropPress={onClose}>
-            <View style={styles.modalContent}>
-                
-                {/* Loader Animation */}
-                <View style={styles.loaderContainer}>
-                    <LottieView 
-                        source={require('../../assets/loading.json')}  
-                        autoPlay
-                        loop
-                        style={styles.lottie}
-                        opacity={loading ? 1 : 0}  
-                    />
-                </View>
+export default function DisplayReportImage({ isVisible, onClose, data }) {
+  const formattedDate = data?.DateAndTime
+    ? new Intl.DateTimeFormat("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(new Date(data.DateAndTime))
+    : "";
 
-                {/* Image */}
-                <Image 
-                    source={{ uri: imageUrl }} 
-                    style={styles.image} 
-                    resizeMode="contain" 
-                    onLoadStart={() => setLoading(true)}  
-                    onLoadEnd={() => setLoading(false)}  
-                />
+  return (
+    <Modal
+      isVisible={isVisible}
+      backdropOpacity={0.2}
+      animationIn="zoomIn"
+      animationOut="zoomOut"
+      style={styles.modal}
+    >
+      <View style={styles.card}>
+        {/* Close Button */}
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <Ionicons name="close" size={20} color="#555" />
+        </TouchableOpacity>
 
-                {/* Close Button */}
-                <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                    <Text style={styles.closeText}>Close</Text>
-                </TouchableOpacity>
+        <Text>Report details</Text>
+        <View style={styles.imageWrapper}>
+          <Image
+            source={{ uri: data?.image }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        </View>
 
-            </View>
-        </Modal>
-    );
+        <Text style={styles.label}>Status: {data?.status}</Text>
+        <Text style={styles.label}>
+          Location: {data?.location?.longitude + " " + data?.location?.latitude}
+        </Text>
+        <Text style={styles.label}>Date: {formattedDate}</Text>
+      </View>
+    </Modal>
+  );
 }
 
 const styles = StyleSheet.create({
-    modalContent: {
-        backgroundColor: 'white',
-        padding: 20,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    loaderContainer: {
-        position: 'absolute',
-        width: 150,
-        height: 150,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    lottie: {
-        width: 150,
-        height: 150,
-    },
-    image: {
-        width: 300,
-        height: 300,
-    },
-    closeButton: {
-        marginTop: 15,
-        padding: 10,
-        backgroundColor: '#FA4032',
-        borderRadius: 5,
-    },
-    closeText: {
-        color: 'white',
-        fontWeight: 'bold',
-    },
+  modal: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  card: {
+    width: width * 0.85,
+    backgroundColor: "#fff",
+    borderRadius: 0,
+    padding: 16,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  closeButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    padding: 6,
+    zIndex: 2,
+  },
+  imageWrapper: {
+    width: "100%",
+    aspectRatio: 1.2,
+    borderRadius: 0,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#eee",
+    marginTop: 20,
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+  },
+  label: {
+    alignSelf: "start",
+    marginTop: 16,
+    fontSize: 15,
+    color: "#333",
+    fontWeight: "400",
+  },
 });

@@ -9,26 +9,26 @@ import {
   StatusBar,
   Alert,
 } from "react-native";
-import { Polyline } from "react-native-maps";
+import Mapbox from "@rnmapbox/maps";
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import polyline from "@mapbox/polyline";
-import MapView, { UrlTile, Marker } from "react-native-maps";
-import SearchIcon from "../../Images/search.svg";
+import LoadingModal from "../modals/loadingModal";
 import useLiveLocation from "../../Functions/getCurrentLocation";
 import GetUserData from "../../Functions/getUserData";
 import fetchReports from "../../Functions/fetchReports";
+import { mapbox_secret } from "@env";
 import { requestRoute, requestReroute } from "../../Functions/routingFunction";
 import ModalList from "../modals/modalMaker";
 import { getDistance as geolibGetDistance } from "geolib";
 
 export default function MapsScreen() {
+  Mapbox.setAccessToken(mapbox_secret);
   const mapRef = useRef(null);
   const [isSmartTraveling, setIsSmartTraveling] = useState(false);
-  const [searchText, setSearchText] = useState("");
   const [reportData, setReportData] = useState([]);
   const location = useLiveLocation();
   const [status, setStatus] = useState("");
-  const [route, setRoute] = useState("");
+  const [route, setRoute] = useState([]);
   const [duration, setDuration] = useState("");
   const [distance, setDistance] = useState("");
   const [initialRegion, setInitialRegion] = useState(null);
@@ -37,7 +37,7 @@ export default function MapsScreen() {
   const prevReportData = useRef([]);
   const [isReroutingEnabled, setIsReroutingEnabled] = useState(false);
   const [isLocationAvailable, setIsLocationAvailable] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const loadSettings = async () => {
     try {
       const savedSmartRerouting = await AsyncStorage.getItem("userSettings");
@@ -89,14 +89,6 @@ export default function MapsScreen() {
     }
   }, [reportData]);
 
-  function decodePolyline(encoded, source = "ors") {
-    const coordinates = polyline.decode(encoded);
-
-    return source === "mapbox"
-      ? coordinates.map(([lng, lat]) => ({ latitude: lat, longitude: lng }))
-      : coordinates.map(([lat, lng]) => ({ latitude: lat, longitude: lng }));
-  }
-
   async function handlerouting(destinationLocation) {
     let startLocation = {
       latitude: location.latitude,
@@ -108,6 +100,7 @@ export default function MapsScreen() {
     };
     try {
       let repaired_roads = await getUnpassableRoadCoordinates();
+      setLoading(true);
       const { decoded_data, latLngCoordinates, duration, distance } =
         await requestRoute(startLocation, endLocation);
 
@@ -125,24 +118,30 @@ export default function MapsScreen() {
         return;
       }
       const distanceKm = (distance / 1000).toFixed(2);
-      const durationMin = (duration / 60).toFixed(2);
+      const durationHour = formatDuration(duration);
       setDistance(distanceKm);
-      setDuration(durationMin);
+      setDuration(durationHour);
       setRoute(latLngCoordinates);
       Alert.alert(
         "Route Found",
-        "Your route has been successfully found. \n\n Distance: " +
-          distance +
-          " km \n Duration: " +
-          duration +
-          " minutes"
+        `Your route has been successfully found.\n\nDistance: ${distanceKm} km\nDuration: ${durationHour}`
       );
     } catch (error) {
       Alert.alert(
         "Something went wrong",
         "Error fetching route. Please try again later."
       );
+    } finally {
+      setLoading(false);
     }
+  }
+  function formatDuration(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.round((seconds % 3600) / 60);
+
+    if (hours > 0 && minutes > 0) return `${hours} h ${minutes} m`;
+    if (hours > 0 && minutes === 0) return `${hours} h`;
+    return `${minutes} m`;
   }
 
   function checkForRepairedRoads(routeCoordinates, repairedRoads) {
@@ -177,25 +176,28 @@ export default function MapsScreen() {
     try {
       const defectNode = await getUnpassableRoadCoordinates();
       setRoute("");
-      const { decoded_data, latLngCoordinates, duration, distance } =
+      setLoading(true);
+      const { geojsonFeature, latLngCoordinates, duration, distance } =
         await requestReroute(startLocation, endLocation, defectNode);
 
       const distanceKm = (distance / 1000).toFixed(2);
-      const durationMin = (duration / 60).toFixed(2);
+      const durationHour = formatDuration(duration);
       setDistance(distanceKm);
-      setDuration(durationMin);
+      setDuration(durationHour);
       setRoute(latLngCoordinates);
       Alert.alert(
         "Route Found",
         "Your route has been successfully found. \n\n Distance: " +
           distanceKm +
           " km \n Duration: " +
-          durationMin +
+          durationHour +
           " minutes"
       );
     } catch (error) {
       console.error("Error in findAlternativeRoute:", error);
       return [];
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -249,106 +251,151 @@ export default function MapsScreen() {
 
   const onMapPress = (e) => {
     if (!isSmartTraveling) return;
-    const { latitude, longitude } = e.nativeEvent.coordinate;
-    setSelectedLocation({ latitude, longitude });
-    let destinationLocation = { latitude, longitude };
-    handlerouting(destinationLocation);
+    const [longitude, latitude] = e.geometry.coordinates;
+    const selected = { latitude, longitude };
+    setSelectedLocation(selected);
+    handlerouting(selected);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       {ModalList.routingPromptModal(showModal, handleCloseModal)}
-
-      <View style={styles.searchContainer}>
-        <View style={styles.iconContainer}>
-          <SearchIcon width={25} height={35} />
+      <View style={styles.legendContainer}>
+        <View style={styles.legendItem}>
+          <View
+            style={[styles.legendColorBox, { backgroundColor: "yellow" }]}
+          />
+          <Text style={styles.legendLabel}>Road Defects</Text>
         </View>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search a place around Malaybalay"
-          placeholderTextColor="#999"
-          value={searchText}
-          onChangeText={setSearchText}
-        />
+        <View style={styles.legendItem}>
+          <View style={[styles.legendColorBox, { backgroundColor: "red" }]} />
+          <Text style={styles.legendLabel}>Vehicle Collision</Text>
+        </View>
       </View>
-
-      {/* MapView Filling Entire Screen */}
+      <LoadingModal open={loading} />
+      {isSmartTraveling && route.length > 0 && (
+        <View style={styles.routeInfoContainer}>
+          <Text style={styles.routeInfoText}>Distance: {distance} km</Text>
+          <Text style={styles.routeInfoText}>Duration: {duration}</Text>
+        </View>
+      )}
       {initialRegion && (
-        <MapView
+        <Mapbox.MapView
+          logoEnabled={false}
+          attributionEnabled={false}
           ref={mapRef}
           style={styles.map}
-          initialRegion={
-            initialRegion || {
-              latitude: 7.9266,
-              longitude: 125.0876,
-              latitudeDelta: 0.05,
-              longitudeDelta: 0.05,
-            }
-          }
           onPress={onMapPress}
         >
-          <UrlTile
-            urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maximumZ={19}
+          <Mapbox.Camera
+            zoomLevel={9}
+            centerCoordinate={[
+              initialRegion?.longitude ?? 125.118091,
+              initialRegion?.latitude ?? 8.163884,
+            ]}
           />
 
           {!isSmartTraveling &&
-            reportData.map((report, index) => (
-              <Marker
-                key={index}
-                coordinate={{
-                  latitude: parseFloat(report.latitude),
-                  longitude: parseFloat(report.longitude),
-                }}
-                title={report.type}
-                description={report.details}
-                pinColor={
-                  report.type.toLowerCase() === "road defects"
-                    ? "red"
-                    : "yellow"
-                }
-              />
-            ))}
+            reportData.map((report, index) => {
+              const markerColor =
+                report.type.toLowerCase() === "road defects" ? "red" : "yellow";
+
+              return (
+                <Mapbox.PointAnnotation
+                  key={`report-${index}`}
+                  id={`report-${index}`}
+                  coordinate={[
+                    parseFloat(report.longitude),
+                    parseFloat(report.latitude),
+                  ]}
+                >
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      backgroundColor: markerColor,
+                      borderRadius: 20,
+                      borderWidth: 2,
+                      borderColor: "#fff",
+                    }}
+                  />
+                </Mapbox.PointAnnotation>
+              );
+            })}
 
           {selectedLocation && (
-            <Marker
-              coordinate={selectedLocation}
-              title="Selected Location"
-              description="You selected this location"
-              pinColor="green"
-            />
+            <Mapbox.PointAnnotation
+              id="selected-location"
+              coordinate={[
+                selectedLocation.longitude,
+                selectedLocation.latitude,
+              ]}
+            >
+              <View
+                style={{
+                  height: 30,
+                  width: 30,
+                  backgroundColor: "green",
+                  borderRadius: 15,
+                  borderColor: "#fff",
+                  borderWidth: 2,
+                }}
+              />
+            </Mapbox.PointAnnotation>
           )}
-          {isSmartTraveling && (
-            <Marker
-              coordinate={{
-                latitude: location.latitude,
-                longitude: location.longitude,
-              }}
-              title="Your Location"
-              description={
-                "distance: " +
-                distance +
-                " km" +
-                " duration: " +
-                duration +
-                " hours"
-              }
-              pinColor="orange"
-            />
-          )}
-          {isSmartTraveling && route && (
-            <Polyline coordinates={route} strokeColor="blue" strokeWidth={4} />
-          )}
-        </MapView>
-      )}
 
-      {/* Status Message */}
+          {isSmartTraveling && (
+            <Mapbox.PointAnnotation
+              id="user-location"
+              coordinate={[location.longitude, location.latitude]}
+            >
+              <View
+                style={{
+                  height: 30,
+                  width: 30,
+                  backgroundColor: "orange",
+                  borderRadius: 15,
+                  borderColor: "#fff",
+                  borderWidth: 2,
+                }}
+              />
+            </Mapbox.PointAnnotation>
+          )}
+
+          {/* Route Line */}
+          {isSmartTraveling && route.length > 0 && (
+            <Mapbox.ShapeSource
+              id="routeSource"
+              shape={{
+                type: "Feature",
+                geometry: {
+                  type: "LineString",
+                  coordinates: route.map((coord) => [
+                    coord.longitude,
+                    coord.latitude,
+                  ]),
+                },
+              }}
+            >
+              <Mapbox.LineLayer
+                id="routeLineLayer"
+                style={{
+                  lineColor: "blue",
+                  lineWidth: 4,
+                }}
+              />
+            </Mapbox.ShapeSource>
+          )}
+        </Mapbox.MapView>
+      )}
       {isSmartTraveling && (
         <Text style={styles.statusMessage}>You are now smart traveling</Text>
       )}
-
-      {/* Button Positioned Over the Map */}
-      <TouchableOpacity style={styles.button} onPress={() => handleOpenModal()}>
+      <TouchableOpacity
+        style={styles.button}
+        disabled={loading}
+        onPress={handleOpenModal}
+      >
         <Text style={styles.buttonText}>
           {isSmartTraveling
             ? "Disable Smart Rerouting"
@@ -362,26 +409,6 @@ export default function MapsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
 
-  searchContainer: {
-    position: "absolute",
-    top: StatusBar.currentHeight ? StatusBar.currentHeight + 10 : 40,
-    left: 10,
-    right: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    backgroundColor: "#f9f9f9",
-    zIndex: 1,
-  },
-
-  iconContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10,
-  },
   searchInput: { flex: 1, height: 50, fontSize: 14, color: "#000" },
 
   map: {
@@ -422,4 +449,65 @@ const styles = StyleSheet.create({
   },
 
   buttonText: { color: "#fff", fontSize: 16 },
+  legendContainer: {
+    position: "absolute",
+    top: StatusBar.currentHeight ? StatusBar.currentHeight + 10 : 40,
+    left: 10,
+    right: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: 8,
+    padding: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    zIndex: 9999,
+  },
+
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  legendColorBox: {
+    width: 20,
+    height: 20,
+    marginRight: 5,
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+
+  legendLabel: {
+    fontSize: 14,
+    color: "#333",
+  },
+  routeInfoContainer: {
+    position: "absolute",
+    top: StatusBar.currentHeight ? StatusBar.currentHeight + 80 : 100,
+    left: 10,
+    right: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: 8,
+    padding: 10,
+    width: "50%",
+    alignItems: "start",
+    justifyContent: "start",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    zIndex: 9998,
+  },
+
+  routeInfoText: {
+    fontSize: 14,
+    fontWeight: 400,
+    color: "#333",
+  },
 });

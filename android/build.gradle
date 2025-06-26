@@ -1,3 +1,4 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
     ext {
@@ -14,10 +15,10 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+        classpath 'com.google.gms:google-services:4.4.1'
         classpath('com.android.tools.build:gradle')
         classpath('com.facebook.react:react-native-gradle-plugin')
         classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
-         classpath 'com.google.gms:google-services:4.4.1' 
     }
 }
 
@@ -33,6 +34,19 @@ allprojects {
             // Android JSC is installed from npm
             url(new File(['node', '--print', "require.resolve('jsc-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), '../dist'))
         }
+        maven {
+
+    url 'https://api.mapbox.com/downloads/v2/releases/maven'
+
+    credentials {
+
+    username = 'mapbox'
+
+    password = project.hasProperty('sk.eyJ1IjoibWFydGV5MDY5IiwiYSI6ImNtYTdrMDhkbjE0djEybnNpYWJrZ2g5YWIifQ.Yl-WzErYQ9EsD-xh7MQkMw') ? MAPBOX_DOWNLOADS_TOKEN : ""
+
+    }
+
+    }
 
         google()
         mavenCentral()

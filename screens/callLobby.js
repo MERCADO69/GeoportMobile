@@ -11,7 +11,8 @@ import { Audio } from "expo-av";
 import LottieView from "lottie-react-native";
 const { width } = Dimensions.get("window");
 
-export default function CallLobby({ navigation, type, room_token }) {
+export default function CallLobby({ navigation, route }) {
+  const { type, room_token } = route.params;
   const sound = useRef(null);
 
   useEffect(() => {
@@ -46,10 +47,11 @@ export default function CallLobby({ navigation, type, room_token }) {
       await sound.current.stopAsync();
       await sound.current.unloadAsync();
     }
-    if (type === "call") {
-      navigation.navigate("CallScreen", room_token);
+    console.log("the type sssssss ", type);
+    if (type === "call" || type === "Call") {
+      navigation.navigate("CallScreen", { room_token });
     } else {
-      navigation.navigate("VideoCallLobby", room_token);
+      navigation.navigate("VideoCallLobby", { room_token });
     }
   };
 

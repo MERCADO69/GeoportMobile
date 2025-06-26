@@ -9,12 +9,14 @@ import {
 } from "react-native";
 import LottieView from "lottie-react-native";
 import HangupIcon from "../assets/end_call.svg";
+import { WebView } from "react-native-webview";
 import connectCall from "../Functions/connectToLivekitCall";
 import { LIVEKIT_WS_URL } from "@env";
 
 const { width } = Dimensions.get("window");
 
-export default function OnVideoCallPage({ navigation, room_token }) {
+export default function OnVideoCallPage({ navigation, route }) {
+  const { room_token } = route.params;
   const [callTime, setCallTime] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => {
@@ -33,19 +35,14 @@ export default function OnVideoCallPage({ navigation, room_token }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Text style={styles.callerName}>Akali</Text>
-      <Text style={styles.callStatus}>
-        On Video Call • {formatTime(callTime)}
-      </Text>
-
-      <TouchableOpacity
-        style={styles.hangupButton}
-        onPress={() => {
-          navigation.navigate("homepage");
+      <WebView
+        source={{
+          uri: `https://livekit-web-host.netlify.app/livekit-setup/${encodeURIComponent(
+            room_token
+          )}`,
         }}
-      >
-        <HangupIcon width={34} height={34} fill="#fff" />
-      </TouchableOpacity>
+        style={{ flex: 1 }}
+      />
     </SafeAreaView>
   );
 }

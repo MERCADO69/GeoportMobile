@@ -3,7 +3,7 @@ import { StyleSheet, Alert } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import * as Notifications from "expo-notifications";
-
+import { registerGlobals } from '@livekit/react-native';
 import Constants from "expo-constants";
 import { useEffect } from "react";
 
@@ -39,6 +39,7 @@ Notifications.setNotificationHandler({
 });
 
 function App() {
+  registerGlobals();
   useEffect(() => {
     (async () => {
       const { status } = await Notifications.getPermissionsAsync();

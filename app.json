@@ -50,7 +50,17 @@
       ],
       "expo-notifications",
       "expo-location",
-      "expo-image-picker"
+      "expo-image-picker",
+
+      [
+        "@livekit/react-native-expo-plugin",
+        {
+          "android": {
+            "audioType": "communication"
+          }
+        }
+      ],
+      "@config-plugins/react-native-webrtc"
     ],
     "extra": {
       "eas": {

@@ -1,12 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  Dimensions,
-} from "react-native";
+import {View,Text,TouchableOpacity,StyleSheet,SafeAreaView,Dimensions,Alert,} from "react-native";
 import { Audio } from "expo-av";
 import LottieView from "lottie-react-native";
 const { width } = Dimensions.get("window");
@@ -31,15 +24,12 @@ export default function CallLobby({ navigation, route }) {
         console.warn("Error playing sound:", error);
       }
     };
-
     playRingtone();
-
     return () => {
       if (sound.current) {
         sound.current.stopAsync();
         sound.current.unloadAsync();
-      }
-    };
+      }};
   }, []);
 
   const handleAnswer = async () => {
@@ -47,7 +37,6 @@ export default function CallLobby({ navigation, route }) {
       await sound.current.stopAsync();
       await sound.current.unloadAsync();
     }
-    console.log("the type sssssss ", type);
     if (type === "call" || type === "Call") {
       navigation.navigate("CallScreen", { room_token });
     } else {
@@ -60,7 +49,12 @@ export default function CallLobby({ navigation, route }) {
       await sound.current.stopAsync();
       await sound.current.unloadAsync();
     }
-    navigation.goBack();
+    navigation.navigate('homepage')
+  Alert.alert(
+  'Call Declined',
+  'If you accidentally declined the call, you may contact the admin by calling (0955 312 3136) or emailing geoportmalaybalay@gmail.com.\n\nThank you.'
+);
+
   };
 
   return (

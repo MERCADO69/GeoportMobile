@@ -1,45 +1,87 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Dimensions,
+  Text,
+  View,
+  Alert,
 } from "react-native";
-import { WebView } from "react-native-webview";
-const { width } = Dimensions.get("window");
+import { AudioSession, LiveKitRoom } from "@livekit/react-native";
 import { LIVEKIT_WS_URL } from "@env";
+import {
+  ParticipantEvents,
+  RoomCleanup,
+  PublishTracks,
+  CallControls,
+  CallTimer
+} from "../Functions/livekitIntergationFunctions";
 
 export default function OnCallPage({ navigation, route }) {
   const { room_token } = route.params;
-  const [callTime, setCallTime] = useState(0);
-  useEffect(() => {
-    console.log("The room token issssss ", room_token);
-    const interval = setInterval(() => {
-      setCallTime((prev) => prev + 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60)
-      .toString()
-      .padStart(2, "0");
-    const secs = (seconds % 60).toString().padStart(2, "0");
-    return `${mins}:${secs}`;
-  };
+  useEffect(() => {
+    if (!room_token) {
+      Alert.alert(
+        "Cannot proceed to call",
+        "No room token was provided or it has expired",
+        [{ text: "OK", onPress: () => navigation.goBack() }]
+      );
+      return;
+    }
+
+    const start = async () => {
+      await AudioSession.startAudioSession();
+    };
+
+    start();
+    return () => {
+      AudioSession.stopAudioSession();
+    };
+  }, [room_token]);
+
+  if (!room_token) return null;
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <WebView
-        source={{
-          uri: `https://livekit-web-host.netlify.app/livekit-setup/${encodeURIComponent(
-            room_token
-          )}`,
-        }}
-        style={{ flex: 1 }}
-      />
+      <View style={styles.container}>
+        <View style={styles.callHeader}>
+          <Text style={styles.adminText}>Geoport Admin</Text>
+          <CallTimer />
+        </View>
+
+        <LiveKitRoom
+          style={styles.liveKitRoom}
+          serverUrl={LIVEKIT_WS_URL}
+          token={room_token}
+          connect={true}
+          options={{ adaptiveStream: { pixelDensity: "screen" } }}
+          video={true}
+          audio={true}
+          onDisconnected={() => {
+            Alert.alert(
+              'Call Ended',
+              'Thank you for answering the call. Your response helps us verify the report more efficiently. We appreciate your cooperation.'
+            );
+          }}
+          onError={(err) => {
+            Alert.alert("Something went wrong!", err.message || "Unknown error");
+            navigation.navigate('homepage');
+          }}
+        >
+          <PublishTracks />
+          <ParticipantEvents
+            onUserDisconnected={() => {
+              Alert.alert(
+                "Call Completed",
+                "Thank you for taking the time to answer the call and providing the information we needed. Your cooperation helps us verify reports efficiently and continue serving the community. We appreciate your assistance."
+              );
+              navigation.navigate('homepage');
+            }}
+          />
+          <RoomCleanup />
+          <CallControls navigation={navigation} />
+        </LiveKitRoom>
+      </View>
     </SafeAreaView>
   );
 }
@@ -48,37 +90,39 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#f4f6f8",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
   },
-  callerName: {
-    fontSize: 24,
+  container: {
+    flex: 1,
+  },
+  callHeader: {
+    alignItems: "center",
+    paddingVertical: 20,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+  },
+  adminText: {
+    fontSize: 20,
     fontWeight: "600",
-    color: "#1a1a1a",
-    fontFamily: "Poppins_600SemiBold",
+    color: "#333",
   },
-  callStatus: {
-    fontSize: 16,
-    color: "#666",
-    marginTop: 6,
-    marginBottom: 30,
+  liveKitRoom: {
+    flex: 1,
   },
-  lottie: {
-    width: width * 0.7,
-    height: width * 0.7,
-    marginBottom: 60,
-  },
-  hangupButton: {
-    backgroundColor: "#E53935",
-    padding: 20,
-    borderRadius: 50,
-    alignItems: "center",
+  controls: {
+    flexDirection: "row",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
+    marginTop: 20,
+  },
+  controlButton: {
+    backgroundColor: "#E53935",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 24,
+  },
+  controlText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

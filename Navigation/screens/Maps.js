@@ -188,10 +188,10 @@ export default function MapsScreen() {
       Alert.alert(
         "Route Found",
         "Your route has been successfully found. \n\n Distance: " +
-          distanceKm +
-          " km \n Duration: " +
-          durationHour +
-          " minutes"
+        distanceKm +
+        " km \n Duration: " +
+        durationHour +
+        " minutes"
       );
     } catch (error) {
       console.error("Error in findAlternativeRoute:", error);

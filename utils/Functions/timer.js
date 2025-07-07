@@ -9,7 +9,7 @@ export default class Timer {
     }
   
     start() {
-      if (this.timerInterval) return; // Prevent multiple intervals
+      if (this.timerInterval) return; 
   
       this.timerInterval = setInterval(() => {
         this.remainingTime--;

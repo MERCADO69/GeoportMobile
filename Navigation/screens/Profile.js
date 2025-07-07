@@ -31,7 +31,7 @@ export default function Morescreen({ navigation }) {
 
   useEffect(() => {
     if (data.status) {
-      if ((data.status = "verified")) {
+      if ((data.status === "verified")) {
         setStatus("Verified Resident");
       } else {
         setStatus("Unverified Resident");
@@ -108,7 +108,7 @@ export default function Morescreen({ navigation }) {
           <View style={styles.profileContainer}>
             {data.image ? (
               <Image
-                source={{ uri: data.image }}
+                source={{ uri: data.image || 'https://res.cloudinary.com/douasd2ik/image/upload/v1751812905/Untitled_design_1_kjn1dn.png' }}
                 style={styles.profileImage}
                 resizeMode="cover"
                 onError={(e) =>

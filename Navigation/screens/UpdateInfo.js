@@ -1,8 +1,6 @@
 import React,{useEffect, useState} from 'react';
 import { View, Text, TouchableOpacity,StyleSheet,TextInput,Image, Alert} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
-import ValidateFace from '../../Functions/verifyImage'; 
+import { Ionicons } from '@expo/vector-icons';import ValidateFace from '../../Functions/verifyImage'; 
 import GetUserData from "../../Functions/getUserData"
 import useLiveLocation from '../../Functions/getCurrentLocation';
 import GetReverseLocation from "../../Functions/reverseLocationLookup"

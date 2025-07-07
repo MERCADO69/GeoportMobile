@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator, Button } from "react-native";
 import { useForm } from "react-hook-form";
 import {
   View,
@@ -13,11 +13,8 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { auth } from "../firebaseConfig";
-import { onAuthStateChanged } from "firebase/auth";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import loginFunction from "../Functions/loginFunction";
-import useGoogleAuth from "../Functions/continueWithGoogle";
 import Mylogo from "../Images/Geo.svg";
 import Tagline from "../Images/Sibya.svg";
 import FB from "../Images/facebook.svg";
@@ -29,8 +26,10 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen({ navigation }) {
   const { width, height } = Dimensions.get("window");
+
+ 
+
   const insets = useSafeAreaInsets();
-  const { promptAsync } = useGoogleAuth();
   const { register, handleSubmit, setValue, watch } = useForm({
     mode: "onChange",
   });
@@ -120,23 +119,29 @@ export default function LoginScreen({ navigation }) {
             )}
           </TouchableOpacity>
 
-          <Either
+            <Text style={{margin:5}}>or</Text>
+            <TouchableOpacity style={styles.signupButton} onPress={() =>{navigation.navigate("Create Account")}}>
+              <Text style={{margin:"10",color:"green"}}>Create new Account</Text> 
+            </TouchableOpacity>
+         
+         
+          {/* <Either
             width={width * 0.8}
             height={height * 0.05}
             style={styles.either}
-          />
+          /> */}
 
-          <View style={styles.authContainer}>
+          {/* <View style={styles.authContainer}>
             <TouchableOpacity style={styles.authButton} onPress={() => {}}>
               <FB width={40} height={40} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.authButton}
-              onPress={() => handleSignup()}
+              onPress={() => promptAsync()}
             >
               <ContinueG width={40} height={40} />
             </TouchableOpacity>
-          </View>
+          </View> */}
 
           <TouchableOpacity onPress={() => navigation.navigate("ForgotPass")}>
             <Text style={styles.forgotPassword}>Forgot Password?</Text>
@@ -146,7 +151,7 @@ export default function LoginScreen({ navigation }) {
     </View>
   );
 }
-// CSS / StyleSheet for the component
+
 const styles = {
   container: {
     flex: 1,
@@ -156,6 +161,12 @@ const styles = {
     flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
+  },signupButton:{
+    backgroundColor:null,
+    borderRadius:100,
+    marginTop:10,
+    paddingStart:10,
+    paddingEnd:10
   },
   innerContainer: {
     alignItems: "center",

@@ -1,61 +1,39 @@
 import React, { useEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet,Image } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
-import { useFonts, Poppins_700Bold } from "@expo-google-fonts/poppins";
+import {  Poppins_700Bold } from "@expo-google-fonts/poppins";
 import { useNavigation } from "@react-navigation/native";
 import { auth } from "../firebaseConfig";
-import { onAuthStateChanged } from "firebase/auth";
+import { ActivityIndicator } from "react-native";
+import Logo from "../assets/geoport_splash_bg_removed.png"
 
 export default function LoadingScreen() {
   const navigation = useNavigation();
-  const user = auth.currentUser;
-
-  const [fontsLoaded] = useFonts({ Poppins_700Bold });
-
-
-  const textOpacity = useSharedValue(0);
-  const textScale = useSharedValue(0.8);
-  const progressWidth = useSharedValue(0);
 
   useEffect(() => {
-    textOpacity.value = withTiming(1, { duration: 1200 });
-    textScale.value = withTiming(1, { duration: 1200 });
-    progressWidth.value = withTiming(250, { duration: 3000 });
-  
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setTimeout(() => {
-        if (user) {
-          navigation.navigate("homepage");
-        } else {
-          navigation.navigate("Login");
-        }
-      }, 4000);
-    });
-  
-    return () => unsubscribe();
+    setTimeout(()=>{
+      checkIsAuthenticated()
+    },4000)
   }, []);
 
-  const textStyle = useAnimatedStyle(() => ({
-    opacity: textOpacity.value,
-    transform: [{ scale: textScale.value }],
-  }));
+  const checkIsAuthenticated = () =>{
+    console.log('Runnning check')
+      const isAuthenticated = auth.currentUser
+      if(isAuthenticated){
+        console.log('Authenticated')
+        navigation.navigate("homepage");
+      }else {
+        console.log('unAuthenticated')
+          navigation.navigate("Login");
+        }
+  }
 
-  const progressStyle = useAnimatedStyle(() => ({
-    width: progressWidth.value,
-  }));
 
   return (
     <View style={styles.container}>
-      {/* Title */}
-      <Animated.Text style={[styles.text, textStyle]}>
-        GEOPORT MALAYBALAY
-      </Animated.Text>
-
-     
-      {/* Progress Bar */}
-      <View style={styles.progressContainer}>
-        <Animated.View style={[styles.progressBar, progressStyle]} />
-      </View>
+      <Image source={Logo} style={{ width: 100, height: 100,marginBottom:3 }} />
+      <ActivityIndicator color="white" />
+      <Text style={{fontSize:8,color:"white",marginTop:3}}>Checking if Authenticated</Text>
     </View>
   );
 }
@@ -65,12 +43,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFFFFF", // White background
+    backgroundColor: "#FA812F",
   },
   text: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#FA812F", // Main color
+    color: "#FA812F",
     fontFamily: "Poppins_700Bold",
     letterSpacing: .5,
     textTransform: "uppercase",
@@ -78,14 +56,14 @@ const styles = StyleSheet.create({
   progressContainer: {
     width: 260,
     height: 8,
-    backgroundColor: "#EEEEEE", // Light gray background
+    backgroundColor: "#EEEEEE",
     borderRadius: 10,
     marginTop: 20,
     overflow: "hidden",
   },
   progressBar: {
     height: "100%",
-    backgroundColor: "#FA812F", // Orange progress bar
+    backgroundColor: "#FA812F", 
     borderRadius: 10,
   },
 });

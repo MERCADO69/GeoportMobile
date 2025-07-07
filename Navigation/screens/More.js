@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View,Text,StyleSheet,SafeAreaView,TouchableOpacity,Switch,ScrollView,Alert} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 import LogoutFunction from "../../Functions/logoutFunction"
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -61,7 +60,6 @@ const SettingsScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Fixed Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           
@@ -69,10 +67,8 @@ const SettingsScreen = ({ navigation }) => {
         <Text style={styles.headerText}>Settings</Text>
       </View>
 
-      {/* Scrollable Content */}
       <ScrollView contentContainerStyle={styles.scrollView}>
         <View style={styles.container}>
-          {/* Rerouting Section */}
           <Text style={styles.sectionTitle}>Rerouting</Text>
           <View style={styles.section}>
             <View style={styles.settingItem}>
@@ -92,7 +88,6 @@ const SettingsScreen = ({ navigation }) => {
             </View>
           </View>
 
-          {/* personal information */}
           <Text style={styles.sectionTitle}>Personal Information</Text>
           <View style={styles.section}>
             <View style={styles.settingItem}>

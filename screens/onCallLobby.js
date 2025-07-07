@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect,useState } from "react";
 import {
   StyleSheet,
   SafeAreaView,
@@ -18,7 +18,7 @@ import {
 
 export default function OnCallPage({ navigation, route }) {
   const { room_token } = route.params;
-
+  const [sessionReady, setSessionReady] = useState(false);
   useEffect(() => {
     if (!room_token) {
       Alert.alert(
@@ -31,6 +31,7 @@ export default function OnCallPage({ navigation, route }) {
 
     const start = async () => {
       await AudioSession.startAudioSession();
+       setSessionReady(true);
     };
 
     start();
@@ -48,7 +49,7 @@ export default function OnCallPage({ navigation, route }) {
           <Text style={styles.adminText}>Geoport Admin</Text>
           <CallTimer />
         </View>
-
+{sessionReady && (
         <LiveKitRoom
           style={styles.liveKitRoom}
           serverUrl={LIVEKIT_WS_URL}
@@ -80,7 +81,7 @@ export default function OnCallPage({ navigation, route }) {
           />
           <RoomCleanup />
           <CallControls navigation={navigation} />
-        </LiveKitRoom>
+        </LiveKitRoom>)}
       </View>
     </SafeAreaView>
   );

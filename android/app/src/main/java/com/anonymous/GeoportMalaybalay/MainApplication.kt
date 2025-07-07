@@ -44,6 +44,7 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
+     android.util.Log.d("Geoport", "MainApplication.onCreate() called ✅")
     LiveKitReactNative.setup(this, AudioType.CommunicationAudioType())
     SoLoader.init(this, OpenSourceMergedSoMapping)
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {

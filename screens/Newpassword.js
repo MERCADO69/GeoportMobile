@@ -3,8 +3,6 @@ import { useRoute } from '@react-navigation/native';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, SafeAreaView} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useForm, Controller, useWatch } from "react-hook-form";
-import { useNavigation } from "@react-navigation/native";
-import { useFonts,Poppins_400Regular,Poppins_500Medium,Poppins_600SemiBold,} from "@expo-google-fonts/poppins";
 import ChangePassword from "../Functions/changePassword"
 
 

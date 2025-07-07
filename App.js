@@ -25,8 +25,9 @@ import UpdatePhoneScreen from "./Navigation/screens/PhoneUpdate";
 import ReportsHistoryScreen from "./Navigation/screens/History";
 import UpdateEmail from "./Navigation/screens/Emailupdate";
 import UpdateInformationScreen from "./Navigation/screens/UpdateInfo";
-
+import AccountSetup from "./screens/CreateAccount"
 import { navigationRef, navigate } from "./navigationRef";
+import EmailVerificationCheck from "./screens/EmailVerification"
 
 const Stack = createStackNavigator();
 
@@ -51,6 +52,23 @@ function App() {
       }
     })();
   }, []);
+
+
+  useEffect(() => {
+  Notifications.setNotificationCategoryAsync("incoming-call", [
+    {
+      identifier: "ANSWER",
+      buttonTitle: "Answer",
+      options: { opensAppToForeground: true },
+    },
+    {
+      identifier: "DECLINE",
+      buttonTitle: "Decline",
+      options: { isDestructive: true },
+    },
+  ]);
+}, []);
+
 
   useEffect(() => {
     const registerForPushNotificationsAsync = async () => {
@@ -83,21 +101,28 @@ function App() {
     const foregroundSubscription =
       Notifications.addNotificationReceivedListener((notification) => {
         const { type, room_token } = notification.request.content.data;
-
+        
         if (type?.toLowerCase() === "call" || type?.toLowerCase() === "video") {
           navigate("CallLobby", { type, room_token });
         }
       });
 
-    const backgroundSubscription =
+   const backgroundSubscription =
       Notifications.addNotificationResponseReceivedListener((response) => {
         const { type, room_token } = response.notification.request.content.data;
-
-        console.log("background notif ", type);
-        if (type?.toLowerCase() === "call" || type?.toLowerCase() === "video") {
-          navigate("CallLobby", { type, room_token });
+        const action = response.actionIdentifier;
+        const normalizedType = type?.toLowerCase();
+        if (normalizedType === "call" || normalizedType === "video") {
+          if (action === "ANSWER" || action === Notifications.DEFAULT_ACTION_IDENTIFIER) {
+            navigate("CallScreen", { room_token });
+          } else if (action === "DECLINE") {
+           navigate("homepage");
+          }
+        } else {
+          navigate("homepage");
         }
       });
+
 
     return () => {
       foregroundSubscription.remove();
@@ -131,6 +156,11 @@ function App() {
         <Stack.Screen
           name="CallScreen"
           component={OnCallPage}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="Email Verification"
+          component={EmailVerificationCheck}
           options={{ headerShown: false }}
         />
         <Stack.Screen
@@ -179,6 +209,11 @@ function App() {
           name="UpdateEmail"
           component={UpdateEmail}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Create Account"
+          component={AccountSetup}
+          options={{ headerShown: true }}
         />
         <Stack.Screen
           name="UpdateUserInfo"

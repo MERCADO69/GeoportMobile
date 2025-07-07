@@ -5,20 +5,20 @@
     "owner": "mart_dev",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/geoport_icon.png",
     "scheme": "geoportmalaybalay",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/geoport_splash_bg_removed.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#fa760f"
     },
     "android": {
       "package": "com.anonymous.GeoportMalaybalay",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/geoport_splash_bg_removed.png",
+        "backgroundColor": "#fa760f"
       },
       "permissions": [
         "CAMERA",
@@ -51,7 +51,6 @@
       "expo-notifications",
       "expo-location",
       "expo-image-picker",
-
       [
         "@livekit/react-native-expo-plugin",
         {
@@ -60,7 +59,8 @@
           }
         }
       ],
-      "@config-plugins/react-native-webrtc"
+      "@config-plugins/react-native-webrtc",
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {

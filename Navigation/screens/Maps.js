@@ -281,7 +281,7 @@ export default function MapsScreen() {
           <Text style={styles.routeInfoText}>Duration: {duration}</Text>
         </View>
       )}
-      {initialRegion ?(<LoadingModal open={regionAvailable}/>) : (
+      {!initialRegion ?(<LoadingModal open={regionAvailable}/>) : (
         <Mapbox.MapView
           logoEnabled={false}
           attributionEnabled={false}

@@ -1,4 +1,4 @@
-import { SERVER_PORT, UPDATE_USER_STATUS, SERVER_IP } from "@env";
+import { SERVER_PORT, UPDATE_USER_STATUS, SERVER_URL } from "@env";
 import axios from "axios";
 import { auth } from "../firebaseConfig";
 import CloudinaryUploader from "../utils/Functions/cloudinaryUploaderUtil";
@@ -10,7 +10,6 @@ class UpdateUser {
         console.log('running updatestatus function')
         try {
             let data = await this.cloudinaryUploader.UploadImageProfileToCloudinary(profileImage);
-            console.log('The image url is ',data)
             if (!data) {
                 return {
                     successfull: false,
@@ -28,7 +27,7 @@ class UpdateUser {
 
             let id = user.uid;
             let token = await user.getIdToken();
-            let url = `http://${SERVER_IP}:${SERVER_PORT}/${UPDATE_USER_STATUS}/${id}`;
+            let url = `${SERVER_URL}${UPDATE_USER_STATUS}/${id}`;
             
             let response = await axios.patch(
                 url, { imageUrl: data }, 

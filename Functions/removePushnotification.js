@@ -2,7 +2,7 @@
 import axios from "axios";
 
 import { auth } from "../firebaseConfig";
-import { REMOVE_PUSH_NOTIFICATION, SERVER_IP, SERVER_PORT } from '@env';
+import { REMOVE_PUSH_NOTIFICATION,SERVER_URL } from '@env';
 
 export default async function removePushNotification(){
     try{
@@ -14,7 +14,7 @@ export default async function removePushNotification(){
       
         const id = user.uid;
         const authToken = await user.getIdToken(); 
-        const url = `http://${SERVER_IP}:${SERVER_PORT}/${REMOVE_PUSH_NOTIFICATION}/${id}`;
+        const url = `${SERVER_URL}${REMOVE_PUSH_NOTIFICATION}/${id}`;
 
         const isSubmitSuccess = await axios.post(url,{},{
             headers: {

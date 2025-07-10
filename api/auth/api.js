@@ -1,5 +1,5 @@
 import axios from "axios";
-import { SERVER_PORT, SERVER_IP,SERVER_URL } from "@env";
+import { SERVER_URL } from "@env";
 import { auth } from "../../firebaseConfig";
 
 export default api = axios.create({

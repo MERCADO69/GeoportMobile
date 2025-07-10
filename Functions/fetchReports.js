@@ -1,4 +1,4 @@
-import { FETCH_REPORT, SERVER_PORT, SERVER_IP } from "@env";
+import { FETCH_REPORT, SERVER_PORT, WS_SERVER_URL } from "@env";
 import { auth } from "../firebaseConfig";
 
 let socket = null;
@@ -13,7 +13,7 @@ export default async function fetchReports(setReportData) {
 
   try {
     let token = await user.getIdToken();
-    const url = `ws://${SERVER_IP}:${SERVER_PORT}/${FETCH_REPORT}?token=${token}`;
+    const url = `${WS_SERVER_URL}/${FETCH_REPORT}?token=${token}`;
 
     if (!socket || socket.readyState === WebSocket.CLOSED) {
       socket = new WebSocket(url);

@@ -2,13 +2,10 @@ import { auth } from "../firebaseConfig";
 import axios from "axios";
 import {
   FETCH_REPORTED_REPORTS,
-  SERVER_PORT,
-  SERVER_IP,
-  NGROK_URL,
+  SERVER_URL,
 } from "@env";
 
 export default async function FetchReportedReports() {
-  console.log("Env Vars:", SERVER_IP, SERVER_PORT, FETCH_REPORTED_REPORTS);
   const user = auth.currentUser;
   let id = user.uid;
   const token = await user.getIdToken();
@@ -18,8 +15,8 @@ export default async function FetchReportedReports() {
     return true;
   }
 
-  const url = `http://${SERVER_IP}:${SERVER_PORT}/${FETCH_REPORTED_REPORTS}?id=${id}`;
-
+  const url = `${SERVER_URL}${FETCH_REPORTED_REPORTS}?id=${id}`;
+  console.log("fetch reported reports url", url);
   try {
     const response = await axios.get(url, {
       headers: {

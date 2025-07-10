@@ -20,7 +20,6 @@ import { mapbox_secret } from "@env";
 import { requestRoute, requestReroute } from "../../Functions/routingFunction";
 import ModalList from "../modals/modalMaker";
 import { getDistance as geolibGetDistance } from "geolib";
-import LoadingModal from "../modals/loadingModal"
 export default function MapsScreen() {
   Mapbox.setAccessToken(mapbox_secret);
   const mapRef = useRef(null);

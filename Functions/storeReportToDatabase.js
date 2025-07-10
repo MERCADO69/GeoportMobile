@@ -1,4 +1,4 @@
-import { SEND_REPORT_ENDPOINT, SERVER_PORT, SERVER_IP } from "@env";
+import { SEND_REPORT_ENDPOINT, SERVER_URL} from "@env";
 import GetUserData from "../Functions/getUserData";
 import { auth } from "../firebaseConfig";
 import deleteFromCloudinary from "../Functions/cloudinaryRemoveImage";
@@ -10,7 +10,7 @@ export default async function StoreReportToDatabase(
   report_type,
   loc
 ) {
-  const url = `http://${SERVER_IP}:${SERVER_PORT}/${SEND_REPORT_ENDPOINT}`;
+  const url = `${SERVER_URL}${SEND_REPORT_ENDPOINT}`;
 
   let user = auth.currentUser;
 

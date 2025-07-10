@@ -1,6 +1,6 @@
 import axios from "axios";
 import { auth } from "../firebaseConfig";
-import { SERVER_IP, SERVER_PORT, UPDATE_USER_INFO } from "@env";
+import { SERVER_URL, SERVER_PORT, UPDATE_USER_INFO } from "@env";
 
 export default async function updateUserInfo(name, capturedImage) {
   const user = auth.currentUser;
@@ -22,7 +22,7 @@ export default async function updateUserInfo(name, capturedImage) {
   }
  
   try {
-    const url = `http://${SERVER_IP}:${SERVER_PORT}/${UPDATE_USER_INFO}/${id}`;
+    const url = `${SERVER_URL}${UPDATE_USER_INFO}/${id}`;
     console.log("URL:", url); 
     const response = await axios.post(url, formData, {
       headers: {
@@ -32,10 +32,8 @@ export default async function updateUserInfo(name, capturedImage) {
     });
 
     if (response.status === 200) {
-      console.log("User data updated successfully");
       return { success: true, message: "User data updated successfully" };
     } else {
-      console.log("Failed to update user data");
       return { success: false, message: response.data.message };
     }
   } catch (error) {

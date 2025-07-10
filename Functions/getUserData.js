@@ -1,5 +1,5 @@
 import { auth } from "../firebaseConfig";
-import { FETCH_USER_DATA, SERVER_PORT, SERVER_IP } from "@env";
+import { FETCH_USER_DATA, SERVER_URL } from "@env";
 import axios from "axios";
 
 export default async function GetUserData() {
@@ -10,7 +10,7 @@ export default async function GetUserData() {
     }
     let id = user.uid;
     let token = await user.getIdToken();
-    const url = `http://${SERVER_IP}:${SERVER_PORT}/${FETCH_USER_DATA}?id=${id}`;
+    const url = `${SERVER_URL}${FETCH_USER_DATA}?id=${id}`;
 
     const response = await axios.get(url, {
       headers: {

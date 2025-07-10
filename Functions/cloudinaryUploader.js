@@ -35,7 +35,6 @@ export default async function uploadToCloudinary(photoUri, report_type) {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
-    console.log("Uploaded image URL:", response.data.secure_url);
     return response.data.secure_url;
   } catch (error) {
     console.error("Cloudinary upload failed:", error);

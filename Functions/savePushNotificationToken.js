@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import axios from 'axios';
 import { auth } from "../firebaseConfig";
-import { PUSH_NOTIFICATION, SERVER_IP, SERVER_PORT } from '@env';
+import { PUSH_NOTIFICATION, SERVER_URL, SERVER_PORT } from '@env';
 
 export default async function applyForPushNotification() {
   try {
@@ -34,7 +34,7 @@ export default async function applyForPushNotification() {
 
     const expoPushToken = (await Notifications.getExpoPushTokenAsync()).data;
 
-    const url = `http://${SERVER_IP}:${SERVER_PORT}/${PUSH_NOTIFICATION}/${id}`;
+    const url = `${SERVER_URL}${PUSH_NOTIFICATION}/${id}`;
     const response = await axios.post( url, { expoPushToken },{
         headers: {
           Authorization: `Bearer ${authToken}`,

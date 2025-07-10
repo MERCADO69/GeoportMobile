@@ -1,12 +1,17 @@
-
-
-
-
-
-
-age
-contactNumber
-location
-name
-role
-sex
+* maps dislay
+    -mapbox
+* routing algo
+    - open route service
+* rerouting algo
+    - mapbox api
+* reverse geocoding
+    - locationIQ api
+* database
+    - realtime database (storage)
+    - firebase auth (authentication and account verification)
+* audio conferencing (call)
+    - livekit (cloud)
+* face verification and extraction
+    - compreface
+* request limiter (backend)
+    - fastapi limiter w/ redis

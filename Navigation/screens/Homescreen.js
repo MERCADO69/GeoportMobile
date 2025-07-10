@@ -24,15 +24,12 @@ import FetchReportedReports from "../../Functions/fetchReportedReports";
 import useLiveLocation from "../../Functions/getCurrentLocation";
 import { useNavigation } from "@react-navigation/native";
 import DisplayReportImage from "../modals/displayReport";
-import savePushNotificationToken from "../../Functions/savePushNotificationToken";
+import {AuthenticatedgetRequest} from "../../Functions/get";
+import { auth } from "../../firebaseConfig";
+import { FETCH_USER_DATA } from "@env"; 
 
 export default function Homescreen() {
-  const [fontsLoaded] = useFonts({
-    Poppins_600SemiBold,
-    Poppins_700Bold,
-    Poppins_400Regular,
-    Poppins_500Medium,
-  });
+
   const [searchText, setSearchText] = useState("");
   const [data, setUserData] = useState({});
   const location = useLiveLocation();
@@ -48,17 +45,29 @@ export default function Homescreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
+    try{
     async function FetchAllData() {
       await Promise.all([fetchedData(), fetch()]);
     }
-    FetchAllData();
+    FetchAllData();}catch (error) {
+      throw new Error("Error fetching data: " + error.message);
+    }
   }, []);
 
   async function fetchedData() {
-    const fetch = await GetUserData();
-    if (fetch) {
-      setUserData(fetch.data);
-    }
+                   let user = auth.currentUser;
+                    if (!user) {
+                        throw error("User not logged in");
+                    }
+                    let id = user.uid;
+                    let params = `${FETCH_USER_DATA}?id=${id}`
+                    const {error,message,responseData} = await AuthenticatedgetRequest(params);
+                    if(!error){
+                          console.log("User data fetched successfully:", responseData);
+                          setUserData(responseData.data);
+                    }else{
+                        throw new Error(message);
+                    }
   }
 
   async function fetch() {

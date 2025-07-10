@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { useEffect,useState,useContext } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import {FETCH_USER_DATA} from "@env";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import useLiveLocation from "../Functions/getCurrentLocation";
 import GetUserData from "../Functions/getUserData";
-
+import AuthenticatedgetRequest from "../Functions/get"
+import { auth } from '../firebaseConfig';
 // Screens
 import Homescreen from './screens/Homescreen';
 import Camera from './screens/Camera';
@@ -13,7 +13,6 @@ import Maps from './screens/Maps';
 import Profile from './screens/Profile';
 import More from './screens/More';
 
-// Screen names
 const homeName = 'Home';
 const cameraName = 'Camera';
 const mapsName = 'Maps';
@@ -24,16 +23,22 @@ const Tab = createBottomTabNavigator();
 
 export default function Maincontainer() {
     
-    const currentLocation = useLiveLocation(); 
     const [data,setData] = useState('')
 
-
-  
         useEffect(()=>{
              async function getdata() {
-                const fetchedData = await GetUserData();
-                setData(fetchedData);
-            }
+                let user = auth.currentUser;
+                if (!user) {
+                    throw new Error("User not logged in");
+                }
+                let id = user.uid;
+                let params = `${FETCH_USER_DATA}?id=${id}`
+                const {error,message,responseData} = await AuthenticatedgetRequest(params);
+                if(!error){
+                    setData(responseData);
+                }else{
+                    throw new Error(message);
+                }}
             getdata()
         },[])
     

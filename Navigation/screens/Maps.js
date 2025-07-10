@@ -20,7 +20,7 @@ import { mapbox_secret } from "@env";
 import { requestRoute, requestReroute } from "../../Functions/routingFunction";
 import ModalList from "../modals/modalMaker";
 import { getDistance as geolibGetDistance } from "geolib";
-
+import LoadingModal from "../modals/loadingModal"
 export default function MapsScreen() {
   Mapbox.setAccessToken(mapbox_secret);
   const mapRef = useRef(null);
@@ -28,6 +28,7 @@ export default function MapsScreen() {
   const [reportData, setReportData] = useState([]);
   const location = useLiveLocation();
   const [status, setStatus] = useState("");
+  const [regionAvailable, setRegionAvailable] = useState(false);
   const [route, setRoute] = useState([]);
   const [duration, setDuration] = useState("");
   const [distance, setDistance] = useState("");
@@ -56,7 +57,9 @@ export default function MapsScreen() {
   useEffect(() => {
     async function fetchData() {
       try {
+        setRegionAvailable(true);
         if (location && !initialRegion) {
+          setRegionAvailable(false);
           setInitialRegion({
             latitude: location.latitude,
             longitude: location.longitude,
@@ -279,7 +282,7 @@ export default function MapsScreen() {
           <Text style={styles.routeInfoText}>Duration: {duration}</Text>
         </View>
       )}
-      {initialRegion && (
+      {initialRegion ?(<LoadingModal open={regionAvailable}/>) : (
         <Mapbox.MapView
           logoEnabled={false}
           attributionEnabled={false}
@@ -288,7 +291,7 @@ export default function MapsScreen() {
           onPress={onMapPress}
         >
           <Mapbox.Camera
-            zoomLevel={9}
+            zoomLevel={11}
             centerCoordinate={[
               initialRegion?.longitude ?? 125.118091,
               initialRegion?.latitude ?? 8.163884,

@@ -15,10 +15,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import GetUserData from "../../Functions/getUserData";
 import { auth } from "../../firebaseConfig";
+import {FETCH_USER_DATA} from "@env";
 import reverseLocation from "../../Functions/reverseLocation";
 import useLiveLocation from "../../Functions/getCurrentLocation";
 import FetchReportedReports from "../../Functions/fetchReportedReports";
-
+import {AuthenticatedgetRequest} from "../../Functions/get"
 export default function Morescreen({ navigation }) {
   const user = auth.currentUser;
   const [data, setUserData] = useState({});
@@ -37,7 +38,7 @@ export default function Morescreen({ navigation }) {
         setStatus("Unverified Resident");
       }
     }
-  });
+  },[]);
 
   useEffect(() => {
     async function FetchAllData() {
@@ -51,10 +52,19 @@ export default function Morescreen({ navigation }) {
   }, []);
 
   async function fetchedData() {
-    const fetch = await GetUserData();
-    if (fetch) {
-      setUserData(fetch.data);
-    }
+                 let user = auth.currentUser;
+                    if (!user) {
+                        throw error("User not logged in");
+                    }
+                    let id = user.uid;
+                    let params = `${FETCH_USER_DATA}?id=${id}`
+                    const {error,message,responseData} = await AuthenticatedgetRequest(params);
+                    if(!error){
+                      console.log("User data fetched successfully:", responseData);
+                          setUserData(responseData.data);
+                    }else{
+                        throw new Error(message);
+                    }
   }
 
   async function reverse() {

@@ -1,6 +1,6 @@
 import { auth } from "../firebaseConfig";  
 import api from "../api/auth/api"
-import { CHANGE_EMAIL_SEND_PIN,SERVER_PORT,SERVER_IP,CHANGE_EMAIL_VERIFY_PIN,CHANGE_EMAIL } from '@env'
+import { CHANGE_EMAIL_SEND_PIN,CHANGE_EMAIL_VERIFY_PIN,CHANGE_EMAIL } from '@env'
 
 
 export default class ChangeEmail{

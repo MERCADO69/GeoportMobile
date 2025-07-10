@@ -26,13 +26,15 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen({ navigation }) {
   const { width, height } = Dimensions.get("window");
-
- 
-
   const insets = useSafeAreaInsets();
-  const { register, handleSubmit, setValue, watch } = useForm({
+  const { register, handleSubmit, setValue, watch,reset } = useForm({
     mode: "onChange",
   });
+
+  useEffect(() => {
+  register("email");
+  register("password");
+}, [register]);
 
   const email = watch("email", "");
   const password = watch("password", "");
@@ -46,6 +48,7 @@ export default function LoginScreen({ navigation }) {
       const tryToLogin = await loginFunction(data.email, data.password);
       if (tryToLogin && tryToLogin.email) {
         setLoading(false);
+         reset();
         navigation.navigate("homepage");
       } else {
         Alert.alert("Error", "Invalid login credentials.");
@@ -53,6 +56,7 @@ export default function LoginScreen({ navigation }) {
     } catch (error) {
       Alert.alert("Error", error.message || "Something went wrong.");
     } finally {
+      reset();
       setLoading(false);
     }
   };

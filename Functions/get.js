@@ -4,10 +4,8 @@ import NAuth from "../api/noauth/api"
 
 export async function AuthenticatedgetRequest(params){
   try {
-
-    console.log('Data',data)
     console.log('parameter is ',params)
-    const response = await wAuth.post(params, data);
+    const response = await wAuth.get(params,{});
     const isSuccess = response.status >= 200 && response.status < 300;
     if(isSuccess) return {error: false,message: response.data?.message || '',  responseData: response.data || null, }
   } catch (error) {
@@ -19,9 +17,8 @@ export async function AuthenticatedgetRequest(params){
 export async function UnAuthenticatedgetRequest(params){
   try {
 
-    console.log('Data',data)
     console.log('parameter is ',params)
-    const response = await NAuth.post(params, data);
+    const response = await NAuth.get(params, {});
     const isSuccess = response.status >= 200 && response.status < 300;
     if(isSuccess) return {error: false,message: response.data?.message || '',  responseData: response.data || null, }
   } catch (error) {

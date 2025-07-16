@@ -16,10 +16,8 @@ import {
   TextInput,
   ScrollView,
   RefreshControl,
+  FlatList
 } from "react-native";
-import { useFonts } from "@expo-google-fonts/poppins";
-import SearchIcon from "../../Images/search.svg";
-import GetUserData from "../../Functions/getUserData";
 import FetchReportedReports from "../../Functions/fetchReportedReports";
 import useLiveLocation from "../../Functions/getCurrentLocation";
 import { useNavigation } from "@react-navigation/native";
@@ -30,7 +28,6 @@ import { FETCH_USER_DATA } from "@env";
 
 export default function Homescreen() {
 
-  const [searchText, setSearchText] = useState("");
   const [data, setUserData] = useState({});
   const location = useLiveLocation();
   const [address, setAddress] = useState("");
@@ -43,6 +40,7 @@ export default function Homescreen() {
   const [selectedReport, setSelectedImage] = useState(null);
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
+  const [showAllReports, setShowAllReports] = useState(false);
 
   useEffect(() => {
     try{
@@ -160,21 +158,10 @@ export default function Homescreen() {
             style={styles.locationIcon}
           />
         </SafeAreaView>
-
-        {/* Search Bar */}
-        <SafeAreaView style={styles.searchContainer}>
-          <View style={styles.iconContainer}>
-            <SearchIcon width={25} height={35} />
-          </View>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search"
-            placeholderTextColor="#999"
-            value={searchText}
-            onChangeText={setSearchText}
-            textAlign="left"
-          />
-        </SafeAreaView>
+<SafeAreaView style={styles.searchContainer
+}>
+<Text style={styles.searchText}>GEOPORT MALAYBALAY</Text>
+</SafeAreaView>
 
         {/* Parent Card Container */}
         <View style={styles.parentCard}>
@@ -242,56 +229,84 @@ export default function Homescreen() {
         </TouchableOpacity>
 
         <View>
-          <Text style={[styles.Recent]}>Recent Activity</Text>
+          <View style={styles.recentHeader}>
+            <Text style={[styles.Recent]}>Recent Activity</Text>
+            {total && Object.keys(listofReports).length > 3 && (
+              <TouchableOpacity 
+                onPress={() => setShowAllReports(!showAllReports)}
+                style={styles.viewAllButton}
+              >
+                <Text style={styles.viewAllText}>
+                  {showAllReports ? 'Show Less' : 'View All'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         <View style={styles.recentActivityContainer}>
           {total && Object.keys(listofReports).length > 0 ? (
-            Object.values(listofReports).map((report, index) => {
-              return (
-                <TouchableOpacity
-                  key={index}
-                  style={[styles.card, styles.cardNewType]}
-                  onPress={() => {
-                    setSelectedImage(report);
-                    setIsModalVisible(true);
-                  }}
+            <>
+              {Object.values(listofReports)
+                .slice(0, showAllReports ? Object.keys(listofReports).length : 3)
+                .map((report, index) => {
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={[styles.card, styles.cardNewType]}
+                      onPress={() => {
+                        setSelectedImage(report);
+                        setIsModalVisible(true);
+                      }}
+                    >
+                      <View style={styles.cardNewTypeContent}>
+                        <Ionicons
+                          name="warning"
+                          size={30}
+                          color="#FA4032"
+                          style={styles.iconLeft}
+                        />
+                        <View style={styles.cardTextContainer}>
+                          <Text style={[styles.title, { color: "#FA4032" }]}>
+                            {report.TypeOfReport}
+                          </Text>
+                          <Text style={[styles.subtitle, styles.cardText]}>
+                            {report.status}
+                          </Text>
+                          <Text style={[styles.location, styles.cardText]}>
+                            {report?.location.latitude +
+                              " " +
+                              report?.location.longitude || "Fetching location..."}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.cardRight}>
+                        <Ionicons
+                          name="time"
+                          size={18}
+                          color="#FA4032"
+                          style={styles.iconRight}
+                        />
+                        <Text style={[styles.timeAgo, styles.cardText]}>
+                          {getTimePassed(report.DateAndTime)}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              
+              {!showAllReports && Object.keys(listofReports).length > 3 && (
+                <TouchableOpacity 
+                  style={styles.showMoreCard}
+                  onPress={() => setShowAllReports(true)}
                 >
-                  <View style={styles.cardNewTypeContent}>
-                    <Ionicons
-                      name="warning"
-                      size={30}
-                      color="#FA4032"
-                      style={styles.iconLeft}
-                    />
-                    <View style={styles.cardTextContainer}>
-                      <Text style={[styles.title, { color: "#FA4032" }]}>
-                        {report.TypeOfReport}
-                      </Text>
-                      <Text style={[styles.subtitle, styles.cardText]}>
-                        {report.status}
-                      </Text>
-                      <Text style={[styles.location, styles.cardText]}>
-                        {report?.location.latitude +
-                          " " +
-                          report?.location.longitude || "Fetching location..."}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.cardRight}>
-                    <Ionicons
-                      name="time"
-                      size={18}
-                      color="#FA4032"
-                      style={styles.iconRight}
-                    />
-                    <Text style={[styles.timeAgo, styles.cardText]}>
-                      {getTimePassed(report.DateAndTime)}
-                    </Text>
-                  </View>
+                  <Text style={styles.showMoreText}>
+                    +{Object.keys(listofReports).length - 3} more reports
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color="#FF7F50" />
                 </TouchableOpacity>
-              );
-            })
+              )}
+            </>
           ) : (
             <Text style={styles.norecent}>No recent activity</Text>
           )}
@@ -319,26 +334,18 @@ const styles = StyleSheet.create({
     width: "90%",
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
     paddingHorizontal: 10,
-    backgroundColor: "#f9f9f9",
     zIndex: 10, // Ensures the search bar appears on top
+  },
+  searchText:{
+    color:"white",
+    fontWeight:800,
+    fontSize:30
   },
   iconContainer: {
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    height: 50,
-    fontSize: 14,
-    color: "#000",
-    fontFamily: "Poppins_400Regular",
-    paddingLeft: 5,
-    textAlign: "left",
   },
   topBox: {
     backgroundColor: "#FF7F50",
@@ -441,11 +448,46 @@ const styles = StyleSheet.create({
     color: "#fff",
     paddingLeft: 65,
   },
-  Recent: {
+  recentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 25,
     paddingTop: 30,
-    paddingLeft: 25,
+  },
+  Recent: {
     fontSize: 16,
     fontFamily: "Poppins_500Medium",
+  },
+  viewAllButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+    backgroundColor: '#FF7F50',
+  },
+  viewAllText: {
+    color: '#fff',
+    fontSize: 12,
+    fontFamily: 'Poppins_500Medium',
+  },
+  showMoreCard: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 15,
+    marginHorizontal: 20,
+    marginTop: 10,
+    borderRadius: 8,
+    backgroundColor: '#FFF5F0',
+    borderWidth: 1,
+    borderColor: '#FF7F50',
+    borderStyle: 'dashed',
+  },
+  showMoreText: {
+    color: '#FF7F50',
+    fontSize: 14,
+    fontFamily: 'Poppins_500Medium',
+    marginRight: 8,
   },
   bellContainer: {
     width: 50,
@@ -541,4 +583,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#555",
   },
+  TextContainer:{
+    zIndex:10
+  }
 });

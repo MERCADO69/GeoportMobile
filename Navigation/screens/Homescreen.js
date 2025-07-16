@@ -1,12 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Ionicons } from "react-native-vector-icons";
 import {
-  Poppins_500Medium,
-  Poppins_700Bold,
-  Poppins_600SemiBold,
-  Poppins_400Regular,
-} from "@expo-google-fonts/poppins";
-import {
   View,
   Text,
   StyleSheet,

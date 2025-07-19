@@ -34,7 +34,6 @@ export default function Homescreen() {
   const [selectedReport, setSelectedImage] = useState(null);
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
-  const [showAllReports, setShowAllReports] = useState(false);
 
   useEffect(() => {
     try{
@@ -152,49 +151,52 @@ export default function Homescreen() {
             style={styles.locationIcon}
           />
         </SafeAreaView>
-<SafeAreaView style={styles.searchContainer
-}>
-<Text style={styles.searchText}>GEOPORT MALAYBALAY</Text>
-</SafeAreaView>
+
 
         {/* Parent Card Container */}
         <View style={styles.parentCard}>
-          {/* Total Reports Card */}
-          <TouchableOpacity style={[styles.card, styles.cardOrange]}>
-            <View style={styles.cardContent}>
-              <Text style={[styles.title, styles.orangeText]}>Reports</Text>
-              <Ionicons
-                name="bar-chart"
-                size={24}
-                color="#D35400"
-                style={styles.icon}
-              />
-            </View>
-            <Text style={[styles.number, styles.cardText]}>{total || 0}</Text>
-            <Text style={[styles.subtitle, styles.cardText]}>
-              {lastdateReported}
-            </Text>
-          </TouchableOpacity>
+  {/* Total Reports Card */}
+  <TouchableOpacity 
+    style={[styles.card, styles.cardOrange]}
+    onPress={() => navigation.navigate("History", { filter: "All" })}
+  >
+    <View style={styles.cardContent}>
+      <Text style={[styles.title, styles.orangeText]}>Reports</Text>
+      <Ionicons
+        name="bar-chart"
+        size={24}
+        color="#D35400"
+        style={styles.icon}
+      />
+    </View>
+    <Text style={[styles.number, styles.cardText]}>{total || 0}</Text>
+    <Text style={[styles.subtitle, styles.cardText]}>
+      {lastdateReported}
+    </Text>
+  </TouchableOpacity>
 
-          {/* Resolved Card */}
-          <TouchableOpacity style={[styles.card, styles.cardBlue]}>
-            <View style={styles.cardContent}>
-              <Text style={[styles.title, styles.blueText]}>Resolved</Text>
-              <Ionicons
-                name="calendar"
-                size={24}
-                color="#3498DB"
-                style={styles.icon}
-              />
-            </View>
-            <Text style={[styles.number, styles.cardText]}>
-              {totalSolved || 0}
-            </Text>
-            <Text style={[styles.subtitle, styles.cardText]}>
-              {percentSolved + "% Completion"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+  {/* Resolved Card */}
+  <TouchableOpacity 
+    style={[styles.card, styles.cardBlue]}
+    onPress={() => navigation.navigate("History", { filter: "Solved" })}
+  >
+    <View style={styles.cardContent}>
+      <Text style={[styles.title, styles.blueText]}>Resolved</Text>
+      <Ionicons
+        name="calendar"
+        size={24}
+        color="#3498DB"
+        style={styles.icon}
+      />
+    </View>
+    <Text style={[styles.number, styles.cardText]}>
+      {totalSolved || 0}
+    </Text>
+    <Text style={[styles.subtitle, styles.cardText]}>
+      {percentSolved + "% Completion"}
+    </Text>
+  </TouchableOpacity>
+</View>
 
         <View>
           <Text style={[styles.Quickie]}>Quick Action</Text>
@@ -217,24 +219,14 @@ export default function Homescreen() {
               color="#fff"
               style={styles.icon}
             />
-            <Text style={styles.QuickbuttonText}>New Report</Text>
+            <Text style={styles.QuickbuttonText}>Report an Incident</Text>
           </View>
-          <Text style={styles.submitText}>Submit an Issue</Text>
+          
         </TouchableOpacity>
 
         <View>
           <View style={styles.recentHeader}>
             <Text style={[styles.Recent]}>Recent Activity</Text>
-            {total && Object.keys(listofReports).length > 3 && (
-              <TouchableOpacity 
-                onPress={() => setShowAllReports(!showAllReports)}
-                style={styles.viewAllButton}
-              >
-                <Text style={styles.viewAllText}>
-                  {showAllReports ? 'Show Less' : 'View All'}
-                </Text>
-              </TouchableOpacity>
-            )}
           </View>
         </View>
 
@@ -242,7 +234,7 @@ export default function Homescreen() {
           {total && Object.keys(listofReports).length > 0 ? (
             <>
               {Object.values(listofReports)
-                .slice(0, showAllReports ? Object.keys(listofReports).length : 3)
+                .slice(0, 2) // Show only 2 reports
                 .map((report, index) => {
                   return (
                     <TouchableOpacity
@@ -289,15 +281,14 @@ export default function Homescreen() {
                   );
                 })}
               
-              {!showAllReports && Object.keys(listofReports).length > 3 && (
+              {/* See More button that navigates to History */}
+              {Object.keys(listofReports).length > 2 && (
                 <TouchableOpacity 
-                  style={styles.showMoreCard}
-                  onPress={() => setShowAllReports(true)}
+                  style={styles.seeMoreButton}
+                  onPress={() => navigation.navigate("History")}
                 >
-                  <Text style={styles.showMoreText}>
-                    +{Object.keys(listofReports).length - 3} more reports
-                  </Text>
-                  <Ionicons name="chevron-down" size={20} color="#FF7F50" />
+                  <Text style={styles.seeMoreButtonText}>See More Reports</Text>
+                  <Ionicons name="arrow-forward" size={20} color="#FF7F50" />
                 </TouchableOpacity>
               )}
             </>
@@ -320,21 +311,6 @@ const styles = StyleSheet.create({
     top: 10, // Adjust as needed for vertical placement
     left: 20, // Adjust as needed for horizontal placement
     zIndex: 15,
-  },
-  searchContainer: {
-    position: "absolute",
-    top: 105,
-    left: "5%",
-    width: "90%",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    zIndex: 10, // Ensures the search bar appears on top
-  },
-  searchText:{
-    color:"white",
-    fontWeight:800,
-    fontSize:30
   },
   iconContainer: {
     justifyContent: "center",
@@ -359,7 +335,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 15,
     marginHorizontal: 20,
-    marginTop: -30,
+    marginTop: -120,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -409,7 +385,7 @@ const styles = StyleSheet.create({
     color: "#3498DB",
   },
   Quickie: {
-    paddingTop: 30,
+    paddingTop: 20,
     paddingLeft: 25,
     fontSize: 16,
     fontFamily: "Poppins_500Medium",
@@ -428,17 +404,18 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 17,
     fontFamily: "Poppins_500Medium",
-    paddingLeft: 5,
+    paddingLeft: 4,
+    paddingTop: 5,
   },
   buttonContent: {
     flexDirection: "row",
     alignItems: "center",
-    paddingLeft: 20,
+    paddingLeft: 55,
   },
   submitText: {
     fontSize: 9,
     fontFamily: "Poppins_400Regular",
-    marginTop: -15,
+    marginTop: -14,
     color: "#fff",
     paddingLeft: 65,
   },
@@ -450,38 +427,10 @@ const styles = StyleSheet.create({
     paddingTop: 30,
   },
   Recent: {
+    paddingTop: -5,
+    paddingLeft: 1,
     fontSize: 16,
     fontFamily: "Poppins_500Medium",
-  },
-  viewAllButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
-    backgroundColor: '#FF7F50',
-  },
-  viewAllText: {
-    color: '#fff',
-    fontSize: 12,
-    fontFamily: 'Poppins_500Medium',
-  },
-  showMoreCard: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 15,
-    marginHorizontal: 20,
-    marginTop: 10,
-    borderRadius: 8,
-    backgroundColor: '#FFF5F0',
-    borderWidth: 1,
-    borderColor: '#FF7F50',
-    borderStyle: 'dashed',
-  },
-  showMoreText: {
-    color: '#FF7F50',
-    fontSize: 14,
-    fontFamily: 'Poppins_500Medium',
-    marginRight: 8,
   },
   bellContainer: {
     width: 50,
@@ -504,14 +453,14 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_600SemiBold",
     fontSize: 15,
     position: "absolute",
-    marginTop: -155,
+    marginTop: -175,
     marginLeft: 25,
     color: "#fff",
   },
   locationIcon: {
     marginTop: 10,
     position: "absolute",
-    marginTop: -135,
+    marginTop: -155,
     marginLeft: 20,
   },
   cardNewTypeContent: {
@@ -519,7 +468,7 @@ const styles = StyleSheet.create({
     height: 100,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
+    paddingHorizontal: 13,
     borderWidth: 1,
     borderColor: "#dcdcdc",
     borderRadius: 8,
@@ -563,7 +512,7 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_400Regular",
     fontSize: 13,
     position: "absolute",
-    marginTop: -135,
+    marginTop: -155,
     marginLeft: 40,
     color: "#fff",
   },
@@ -579,5 +528,24 @@ const styles = StyleSheet.create({
   },
   TextContainer:{
     zIndex:10
-  }
+  },
+ seeMoreButton: {
+  flexDirection: 'row',
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingVertical: 10, // Reduced padding
+  marginHorizontal: 13,
+  marginTop: 10,
+  marginBottom: -10, // Explicitly set to 0
+  borderRadius: 8,
+  backgroundColor: '#FFF5F0',
+  borderWidth: 1,
+  borderColor: '#FF7F50',
+},
+  seeMoreButtonText: {
+    color: '#FF7F50',
+    fontSize: 14,
+    fontFamily: 'Poppins_500Medium',
+    marginRight: 7,
+  },
 });

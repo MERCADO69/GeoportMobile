@@ -240,32 +240,21 @@ export default function Morescreen({ navigation }) {
 
           {/* Notifications */}
           <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() =>
-              Alert.alert(
-                "Notifications",
-                "Manage your notification preferences",
-                [
-                  {
-                    text: "OK",
-                    onPress: () => console.log("Notifications OK Pressed"),
-                  },
-                ]
-              )
-            }
-          >
-            <View style={styles.menuItemContent}>
-              <Ionicons
-                name="notifications-outline"
-                size={24}
-                color="#FA812F"
-              />
-              <View style={styles.menuTextContainer}>
-                <Text style={styles.menuTitle}>Notifications</Text>
-                <Text style={styles.menuSubtitle}>Managed Alerts</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
+  style={styles.menuItem}
+  onPress={() => navigation.navigate("More")}
+>
+  <View style={styles.menuItemContent}>
+    <Ionicons
+      name="notifications-outline"
+      size={24}
+      color="#FA812F"
+    />
+    <View style={styles.menuTextContainer}>
+      <Text style={styles.menuTitle}>Notifications</Text>
+      <Text style={styles.menuSubtitle}>Manage Alerts</Text>
+    </View>
+  </View>
+</TouchableOpacity>
 
           {/* Settings */}
           <TouchableOpacity

@@ -16,7 +16,7 @@ import More from './screens/More';
 const homeName = 'Home';
 const cameraName = 'Camera';
 const mapsName = 'Maps';
-const profilename = 'User';
+const profilename = 'Profile';
 const MoreName = 'More';
 
 const Tab = createBottomTabNavigator();

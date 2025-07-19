@@ -1,265 +1,381 @@
-import React, { useState } from 'react';
-import {View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, TextInput,} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+  RefreshControl,
+} from "react-native";
+import { Ionicons } from "react-native-vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import FetchReportedReports from "../../Functions/fetchReportedReports";
+import DisplayReportImage from "../modals/displayReport";
 
-const ReportsHistoryScreen = ({ navigation }) => {
-  const [selectedFilter, setSelectedFilter] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+export default function History() {
+  const [reports, setReports] = useState([]);
+  const [filter, setFilter] = useState("Pending");
+  const [refreshing, setRefreshing] = useState(false); 
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
 
-  const [fontsLoaded] = useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    fetchReports();
+  }, [filter]);
+
+  const fetchReports = async () => {
+    try {
+      const response = await FetchReportedReports();
+      if (response?.data?.data) {
+        const allReports = Object.values(response.data.data);
+        const sortedReports = allReports.sort((a, b) => 
+          new Date(b.DateAndTime) - new Date(a.DateAndTime)
+        );
+        setReports(sortedReports);
+      }
+    } catch (error) {
+      console.error("Error fetching reports:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchReports();
+  }, []);
+
+  const filteredReports = reports.filter(report => {
+    if (filter === "All") return true;
+    return report.status === filter;
   });
 
-  if (!fontsLoaded) {
-    return <Text>Loading...</Text>;
+  const solvedCount = reports.filter(r => r.status === "Solved").length;
+  const pendingCount = reports.filter(r => r.status === "Pending").length;
+
+  function getTimePassed(dateString) {
+    const reportDate = new Date(dateString + "Z");
+    const currentDate = new Date();
+    const timeDifference = currentDate.getTime() - reportDate.getTime();
+
+    const seconds = Math.floor(timeDifference / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    return "Just now";
   }
 
-  const reports  = [ 
-    { title: 'Collision', location: 'Sayre Highway Purok 2, MC', status: 'In Progress', time: '10 Mins Ago' },
-    { title: 'Flooding', location: 'Barangay 3, Malaybalay', status: 'Resolved', time: '1 Hour Ago' },
-    { title: 'Pothole', location: 'Main Street, Malaybalay', status: 'Pending', time: '30 Mins Ago' },
-    { title: 'Broken Bridge', location: 'Sayre Highway, KM 19', status: 'Pending', time: '2 Hours Ago' },
-    { title: 'Roadblock', location: 'Purok 5, Malaybalay', status: 'Resolved', time: '3 Hours Ago' },
-  ];
+  function formatTime(dateString) {
+    const date = new Date(dateString + "Z");
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
 
-  const filteredReports = reports.filter((report) => {
-    const lowercasedSearchQuery = searchQuery.toLowerCase();
-    const matchesSearchQuery =
-      report.title.toLowerCase().includes(lowercasedSearchQuery) ||
-      report.location.toLowerCase().includes(lowercasedSearchQuery);
-  
-    const matchesStatusFilter =
-      selectedFilter === 'All' || report.status === selectedFilter;
-  
-    return matchesSearchQuery && matchesStatusFilter;
-  });
+  function simplifyReportType(type) {
+    if (type.includes("Pothole") || type.includes("Road Damage")) return "Road Defects";
+    if (type.includes("Collision") || type.includes("Accident")) return "Vehicle Collision";
+    return type;
+  }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>Reports History</Text>
-      </View>
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search reports..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
-
-      {/* Filter Buttons */}
-      <View style={styles.filterContainer}>
-        {['All', 'Pending', 'Resolved'].map(filter => (
-          <TouchableOpacity
-            key={filter}
-            style={[styles.filterButton, selectedFilter === filter && styles.activeFilter]}
-            onPress={() => setSelectedFilter(filter)}
-          >
-            <Text style={[styles.filterText, selectedFilter === filter && styles.activeFilterText]}>
-              {filter}
-            </Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh} 
+            colors={["#FF7F50"]}
+          />
+        }
+        contentContainerStyle={styles.scrollContainer}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#FF7F50" />
           </TouchableOpacity>
-        ))}
-      </View>
+          <Text style={styles.headerTitle}>Reports History</Text>
+          <View style={{ width: 24 }} />
+        </View>
 
-      {/* Stats Cards */}
-      {selectedFilter === 'All' && (
-        <View style={styles.statsContainer}>
-          {[
-            { title: 'Total Reports', count: reports.length, color: '#FFCCBC' },
-            { title: 'Resolved', count: reports.filter(r => r.status === 'Resolved').length, color: '#C8E6C9' },
-            { title: 'Pending', count: reports.filter(r => r.status === 'Pending').length, color: '#BBDEFB' },
-          ].map((stat, index) => (
-            <View key={index} style={[styles.statsCard, { backgroundColor: stat.color }]}>
-              <Text style={styles.statsTitle}>{stat.title}</Text>
-              <Text style={styles.statsCount}>{stat.count}</Text>
-            </View>
+        <Text style={styles.subtitle}>View and track all reported issues</Text>
+
+        {/* Filter Tabs */}
+        <View style={styles.filterContainer}>
+          {["All", "Pending", "Solved"].map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              style={[styles.filterTab, filter === tab && styles.activeTab]}
+              onPress={() => setFilter(tab)}
+            >
+              <Text style={[styles.filterText, filter === tab && styles.activeText]}>
+                {tab}
+              </Text>
+            </TouchableOpacity>
           ))}
         </View>
-      )}
 
-      {/* Reports List */}
-      <ScrollView contentContainerStyle={styles.scrollView}>
-        {filteredReports.map((report, index) => (
-          <View key={index} style={styles.reportItem}>
-            <Ionicons name="car-outline" size={25} color={report.status === 'In Progress' ? 'orange' : report.status === 'Resolved' ? 'green' : 'red'} />
-            <View style={styles.reportDetails}>
-              <Text style={styles.reportTitle}>{report.title}</Text>
-              <Text style={styles.reportLocation}>{report.location}</Text>
+        {/* Summary Cards */}
+        <View style={styles.summaryContainer}>
+          <Text style={styles.summaryTitle}>Total Reports {reports.length}</Text>
+          
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryCardTitle}>Solved</Text>
+              <Text style={styles.summaryCardNumber}>{solvedCount}</Text>
+              <Text style={styles.summaryCardSubtitle}>
+                {reports.length > 0 ? Math.round((solvedCount / reports.length) * 100) : 0}% Completion
+              </Text>
             </View>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>{report.status}</Text>
-            </View>
-            <View style={styles.reportTime}>
-              <Ionicons name="time-outline" size={16} color="#666" />
-              <Text style={styles.timeText}>{report.time}</Text>
+            
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryCardTitle}>Pending</Text>
+              <Text style={styles.summaryCardNumber}>{pendingCount}</Text>
             </View>
           </View>
-        ))}
+        </View>
+
+        {/* Reports List */}
+        {filteredReports.length > 0 ? (
+          filteredReports.map((report, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.reportCard}
+              onPress={() => {
+                setSelectedReport(report);
+                setIsModalVisible(true);
+              }}
+            >
+              <View style={styles.reportHeader}>
+                <Text style={styles.reportType}>
+                  {simplifyReportType(report.TypeOfReport)}
+                </Text>
+                <View style={styles.statusBadge}>
+                  <Text style={[
+                    styles.statusText,
+                    report.status === "Solved" && styles.solvedStatus,
+                    report.status === "In Progress" && styles.inProgressStatus
+                  ]}>
+                    {report.status}
+                  </Text>
+                </View>
+              </View>
+              
+              <Text style={styles.reportLocation}>
+                {report.location?.address || `${report.location?.latitude}, ${report.location?.longitude}`}
+              </Text>
+              
+              <View style={styles.reportFooter}>
+                <View style={styles.timeContainer}>
+                  <Ionicons name="time" size={16} color="#FF7F50" />
+                  <Text style={styles.timeText}>
+                    {getTimePassed(report.DateAndTime)}
+                  </Text>
+                </View>
+                <Text style={styles.reportTime}>
+                  {formatTime(report.DateAndTime)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="document-text-outline" size={50} color="#CCCCCC" />
+            <Text style={styles.emptyText}>
+              No {filter.toLowerCase()} reports found
+            </Text>
+          </View>
+        )}
+
+        <DisplayReportImage
+          isVisible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+          data={selectedReport}
+        />
       </ScrollView>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  // Safe Area
-  safeArea: { 
-    flex: 1, 
-    backgroundColor: '#fff' 
+  container: {
+    flex: 1,
+    backgroundColor: "#FEFEFE",
   },
-
-  // Header
-  header: { 
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 8,
+  scrollContainer: {
+    paddingBottom: 20,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    paddingBottom: 10,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontFamily: "Poppins_600SemiBold",
+    color: "#333",
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#666",
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    fontFamily: "Poppins_400Regular",
+  },
+  filterContainer: {
+    flexDirection: "row",
+    marginHorizontal: 20,
+    marginBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    backgroundColor: '#fff'
+    borderBottomColor: "#EEE",
   },
-  headerText: { 
-    fontSize: 16, 
-    marginLeft: 16, 
-    fontFamily: 'Poppins_600SemiBold', 
-    color: '#333' 
+  filterTab: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginRight: 10,
   },
-
-  // Search Bar
-  searchContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: '#f1f1f1', 
-    borderRadius: 8, 
-    margin: 16, 
-    paddingHorizontal: 10 
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: "#FF7F50",
   },
-  searchIcon: { 
-    marginRight: 8 
+  filterText: {
+    fontSize: 16,
+    fontFamily: "Poppins_500Medium",
+    color: "#666",
   },
-  searchInput: { 
-    flex: 1, 
-    height: 40, 
-    fontSize: 14 
+  activeText: {
+    color: "#FF7F50",
+    fontFamily: "Poppins_600SemiBold",
   },
-
-  // Filter
-  filterContainer: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-around', 
-    marginHorizontal: 30,
-    fontFamily: 'Poppins_400Regular',
-    width: 350,
-
+  summaryContainer: {
+    backgroundColor: "#FFF",
+    borderRadius: 10,
+    padding: 20,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
- filterButton: { 
-    paddingVertical: 8, 
-    borderRadius: 30, 
-    backgroundColor: '#f1f1f1',
-    minWidth: 85, // Fixed width for all buttons
-    alignItems: 'center', // Center content horizontally
-    marginRight: 35,
-},
-
-  activeFilter: { 
-    backgroundColor: '#FF7043' 
+  summaryTitle: {
+    fontSize: 16,
+    fontFamily: "Poppins_600SemiBold",
+    color: "#333",
+    marginBottom: 15,
   },
-  filterText: { 
-    fontSize: 14, 
-    color: '#333',
-
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
-  activeFilterText: { 
-    color: '#fff' 
+  summaryCard: {
+    backgroundColor: "#F8F8F8",
+    borderRadius: 8,
+    padding: 15,
+    width: "48%",
+    alignItems: "center",
   },
-
-  // Stats Cards
-  statsContainer: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    marginHorizontal: 16, 
-    marginTop: 10 
+  summaryCardTitle: {
+    fontSize: 14,
+    fontFamily: "Poppins_500Medium",
+    color: "#666",
+    marginBottom: 5,
   },
-  statsCard: { 
-    flex: 1, 
-    marginHorizontal: 4, 
-    borderRadius: 8, 
-    padding: 12, 
-    alignItems: 'center' 
+  summaryCardNumber: {
+    fontSize: 24,
+    fontFamily: "Poppins_600SemiBold",
+    color: "#333",
+    marginBottom: 5,
   },
-  statsTitle: { 
-    fontSize: 12, 
-    color: '#333' 
+  summaryCardSubtitle: {
+    fontSize: 12,
+    fontFamily: "Poppins_400Regular",
+    color: "#666",
   },
-  statsCount: { 
-    fontSize: 18, 
-    fontFamily: 'Poppins_600SemiBold' 
+  reportCard: {
+    backgroundColor: "#FFF",
+    borderRadius: 10,
+    padding: 15,
+    marginHorizontal: 20,
+    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-
-  // Reports
-  scrollView: { 
-    padding: 16 
+  reportHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
   },
-  reportItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    padding: 12, 
-    backgroundColor: '#fff', 
-    borderRadius: 8, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 1 }, 
-    shadowOpacity: 0.1, 
-    shadowRadius: 2, 
-    elevation: 2, 
-    marginBottom: 10 
+  reportType: {
+    fontSize: 16,
+    fontFamily: "Poppins_600SemiBold",
+    color: "#333",
   },
-  reportDetails: { 
-    flex: 1, 
-    marginLeft: 10 
+  statusBadge: {
+    backgroundColor: "#FFE8D6",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
-  reportTitle: { 
-    fontSize: 14, 
-    fontFamily: 'Poppins_500Medium' 
+  statusText: {
+    fontSize: 12,
+    fontFamily: "Poppins_500Medium",
+    color: "#D35400",
   },
-  reportLocation: { 
-    fontSize: 12, 
-    color: '#666' 
+  solvedStatus: {
+    color: "#27AE60",
   },
-
-  // Status Badge
-  statusBadge: { 
-    backgroundColor: '#7E57C2', 
-    borderRadius: 12, 
-    paddingHorizontal: 10, 
-    paddingVertical: 4 
+  inProgressStatus: {
+    color: "#3498DB",
   },
-  statusText: { 
-    color: '#fff', 
-    fontSize: 12 
+  reportLocation: {
+    fontSize: 14,
+    fontFamily: "Poppins_400Regular",
+    color: "#666",
+    marginBottom: 15,
   },
-
-  // Time
-  reportTime: { 
-    flexDirection: 'row', 
-    alignItems: 'center' 
+  reportFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  timeText: { 
-    fontSize: 12, 
-    color: '#666', 
-    marginLeft: 4 
+  timeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  timeText: {
+    fontSize: 12,
+    fontFamily: "Poppins_400Regular",
+    color: "#FF7F50",
+    marginLeft: 5,
+  },
+  reportTime: {
+    fontSize: 12,
+    fontFamily: "Poppins_500Medium",
+    color: "#666",
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 50,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontFamily: "Poppins_500Medium",
+    color: "#999",
+    marginTop: 10,
   },
 });
-
-export default ReportsHistoryScreen;

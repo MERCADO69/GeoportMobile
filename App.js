@@ -191,7 +191,7 @@ function App() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="ReportsHistory"
+          name="History"
           component={ReportsHistoryScreen}
           options={{ headerShown: false }}
         />

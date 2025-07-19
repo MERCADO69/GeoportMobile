@@ -16,7 +16,6 @@ export default async function FetchReportedReports() {
   }
 
   const url = `${SERVER_URL}${FETCH_REPORTED_REPORTS}?id=${id}`;
-  console.log("fetch reported reports url", url);
   try {
     const response = await axios.get(url, {
       headers: {

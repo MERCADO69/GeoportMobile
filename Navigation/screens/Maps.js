@@ -161,17 +161,32 @@ export default function MapsScreen() {
   }
 
   function isSegmentNearRepair(segmentStart, segmentEnd, repairedRoad) {
-    const repairThreshold = 20;
+    const repairThreshold = 120;
 
     if (!Array.isArray(repairedRoad)) {
       repairedRoad = [repairedRoad];
     }
 
-    return repairedRoad.some((repairPoint) => {
-      const distanceStart = geolibGetDistance(segmentStart, repairPoint);
-      const distanceEnd = geolibGetDistance(segmentEnd, repairPoint);
-      return distanceStart < repairThreshold || distanceEnd < repairThreshold;
-    });
+  const midPoint = {
+    latitude: (segmentStart.latitude + segmentEnd.latitude) / 2,
+    longitude: (segmentStart.longitude + segmentEnd.longitude) / 2,
+  };
+
+  repairedRoad.forEach((repairPoint) => {
+    const dStart = geolibGetDistance(segmentStart, repairPoint);
+    const dEnd = geolibGetDistance(segmentEnd, repairPoint);
+    const dMid = geolibGetDistance(midPoint, repairPoint);
+    console.log("🛠 Checking repair point:", repairPoint);
+    console.log("  ↳ Distances → Start:", dStart, "End:", dEnd, "Mid:", dMid);
+  });
+
+  return repairedRoad.some((repairPoint) => {
+    const dStart = geolibGetDistance(segmentStart, repairPoint);
+    const dEnd = geolibGetDistance(segmentEnd, repairPoint);
+    const dMid = geolibGetDistance(midPoint, repairPoint);
+    return dStart < repairThreshold || dEnd < repairThreshold || dMid < repairThreshold;
+  });
+
   }
 
   async function findAlternativeRoute(startLocation, endLocation) {
@@ -208,7 +223,8 @@ export default function MapsScreen() {
       .filter((report) => {
         return (
           ["vehicle collision", "road defects"].includes(report.type) &&
-          report.passable === "false"
+           (report.passable === false || report.passable === "false") && 
+              report.status !== "False Report"
         );
       })
       .map((report) => ({
@@ -216,6 +232,8 @@ export default function MapsScreen() {
         longitude: parseFloat(report.longitude),
       }));
     console.log("Coordinates array:", coordinates);
+    console.log("Raw reportData:", reportData);
+
     return coordinates;
   }
 
@@ -298,9 +316,15 @@ export default function MapsScreen() {
           />
 
           {!isSmartTraveling &&
-            reportData.map((report, index) => {
+            reportData
+            .filter((report) => 
+              report.status !== "False Report" &&
+              report.verifiedStatus !== "unverified" && 
+              report.status !== 'Pending'
+              )
+            .map((report, index) => {
               const markerColor =
-                report.type === "road defects" ? "red" : "yellow";
+                report.type === "vehicle collision" ? "red" : "yellow";
 
               return (
                 <Mapbox.PointAnnotation

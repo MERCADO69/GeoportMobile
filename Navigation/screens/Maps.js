@@ -300,7 +300,7 @@ export default function MapsScreen() {
           {!isSmartTraveling &&
             reportData.map((report, index) => {
               const markerColor =
-                report.type.toLowerCase() === "road defects" ? "red" : "yellow";
+                report.type === "road defects" ? "red" : "yellow";
 
               return (
                 <Mapbox.PointAnnotation
@@ -313,11 +313,11 @@ export default function MapsScreen() {
                 >
                   <View
                     style={{
-                      width: 40,
-                      height: 40,
+                      width: 30,
+                      height: 30,
                       backgroundColor: markerColor,
                       borderRadius: 20,
-                      borderWidth: 2,
+                      borderWidth: 1,
                       borderColor: "#fff",
                     }}
                   />

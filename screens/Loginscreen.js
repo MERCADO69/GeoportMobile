@@ -89,27 +89,36 @@ export default function LoginScreen({ navigation }) {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email address</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="email-address"
-              placeholder="example@gmail.com"
-              placeholderTextColor="#A9A9A9"
-              autoCapitalize="none"
-              autoCorrect={false}
-              onChangeText={(text) => setValue("email", text)}
-            />
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              secureTextEntry
-              placeholder="Password (Min. 6 characters)"
-              placeholderTextColor="#A9A9A9"
-              autoCapitalize="none"
-              autoCorrect={false}
-              onChangeText={(text) => setValue("password", text)}
-            />
-          </View>
+  <Text style={styles.label}>Email address</Text>
+  <TextInput
+    style={styles.input}
+    keyboardType="email-address"
+    placeholder="example@gmail.com"
+    placeholderTextColor="#A9A9A9"
+    autoCapitalize="none"
+    autoCorrect={false}
+    underlineColorAndroid="transparent"
+    autoComplete="off"
+    importantForAutofill="no"
+    textAlignVertical="center"
+    onChangeText={(text) => setValue("email", text)}
+  />
+  <Text style={styles.label}>Password</Text>
+  <TextInput
+    style={styles.input}
+    secureTextEntry
+    placeholder="Password (Min. 6 characters)"
+    placeholderTextColor="#A9A9A9"
+    autoCapitalize="none"
+    autoCorrect={false}
+    underlineColorAndroid="transparent"
+    autoComplete="off"
+    importantForAutofill="no"
+    textAlignVertical="center"
+    onChangeText={(text) => setValue("password", text)}
+  />
+</View>
+
 
           <TouchableOpacity
             style={[styles.loginButton, isDisabled && { opacity: 0.5 }]}
@@ -228,7 +237,7 @@ const styles = {
     color: "#FA812F",
     fontSize: 12,
     textAlign: "center",
-    marginTop: 60,
+    marginTop: 130,
     marginBottom: 20,
   },
 };

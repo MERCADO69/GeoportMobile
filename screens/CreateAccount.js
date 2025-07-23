@@ -83,7 +83,6 @@ export default function AccountSetup({ navigation }) {
 >
 
           <View style={styles.body}>
-            <Text style={styles.title}>Create New Account Form</Text>
             
             <View style={styles.profileContainer}>
               <Image style={styles.profileImage} source={{ uri: profileImage }} />

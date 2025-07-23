@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Button } from "react-native";
+import { ActivityIndicator } from "react-native";
 import { useForm } from "react-hook-form";
 import {
   View,
@@ -7,7 +7,6 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   Dimensions,
   Platform,
 } from "react-native";
@@ -17,9 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import loginFunction from "../Functions/loginFunction";
 import Mylogo from "../Images/Geo.svg";
 import Tagline from "../Images/Sibya.svg";
-import FB from "../Images/facebook.svg";
-import ContinueG from "../Images/continue.svg";
-import Either from "../Images/choices.svg";
+import FeedbackModal from "../Navigation/modals/FeedbackModal"; // ✅ Import Modal
 import * as WebBrowser from "expo-web-browser";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -27,36 +24,52 @@ WebBrowser.maybeCompleteAuthSession();
 export default function LoginScreen({ navigation }) {
   const { width, height } = Dimensions.get("window");
   const insets = useSafeAreaInsets();
-  const { register, handleSubmit, setValue, watch,reset } = useForm({
+  const { register, handleSubmit, setValue, watch, reset } = useForm({
     mode: "onChange",
   });
 
   useEffect(() => {
-  register("email");
-  register("password");
-}, [register]);
+    register("email");
+    register("password");
+  }, [register]);
 
   const email = watch("email", "");
   const password = watch("password", "");
   const [loading, setLoading] = useState(false);
+
+  // ✅ Feedback modal state
+  const [modalData, setModalData] = useState({
+    title: "",
+    message: "",
+    visible: false,
+  });
+
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isDisabled = !isValidEmail(email) || password.length < 6 || loading;
 
+  // ✅ Updated handleLogin function
   const handleLogin = async (data) => {
     try {
       setLoading(true);
       const tryToLogin = await loginFunction(data.email, data.password);
+
       if (tryToLogin && tryToLogin.email) {
-        setLoading(false);
-         reset();
+        reset();
         navigation.navigate("homepage");
       } else {
-        Alert.alert("Error", "Invalid login credentials.");
+        setModalData({
+          title: "Login Failed",
+          message: "Invalid login credentials.",
+          visible: true,
+        });
       }
     } catch (error) {
-      Alert.alert("Error", error.message || "Something went wrong.");
+      setModalData({
+        title: "Something went wrong",
+        message: error.message || "Unexpected error occurred.",
+        visible: true,
+      });
     } finally {
-      reset();
       setLoading(false);
     }
   };
@@ -68,11 +81,7 @@ export default function LoginScreen({ navigation }) {
         { paddingBottom: Platform.OS === "android" ? 0 : insets.bottom },
       ]}
     >
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="transparent"
-        translucent={true}
-      />
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
@@ -89,36 +98,28 @@ export default function LoginScreen({ navigation }) {
           </View>
 
           <View style={styles.inputContainer}>
-  <Text style={styles.label}>Email address</Text>
-  <TextInput
-    style={styles.input}
-    keyboardType="email-address"
-    placeholder="example@gmail.com"
-    placeholderTextColor="#A9A9A9"
-    autoCapitalize="none"
-    autoCorrect={false}
-    underlineColorAndroid="transparent"
-    autoComplete="off"
-    importantForAutofill="no"
-    textAlignVertical="center"
-    onChangeText={(text) => setValue("email", text)}
-  />
-  <Text style={styles.label}>Password</Text>
-  <TextInput
-    style={styles.input}
-    secureTextEntry
-    placeholder="Password (Min. 6 characters)"
-    placeholderTextColor="#A9A9A9"
-    autoCapitalize="none"
-    autoCorrect={false}
-    underlineColorAndroid="transparent"
-    autoComplete="off"
-    importantForAutofill="no"
-    textAlignVertical="center"
-    onChangeText={(text) => setValue("password", text)}
-  />
-</View>
+            <Text style={styles.label}>Email address</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="email-address"
+              placeholder="example@gmail.com"
+              placeholderTextColor="#A9A9A9"
+              autoCapitalize="none"
+              autoCorrect={false}
+              onChangeText={(text) => setValue("email", text)}
+            />
 
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={styles.input}
+              secureTextEntry
+              placeholder="Password (Min. 6 characters)"
+              placeholderTextColor="#A9A9A9"
+              autoCapitalize="none"
+              autoCorrect={false}
+              onChangeText={(text) => setValue("password", text)}
+            />
+          </View>
 
           <TouchableOpacity
             style={[styles.loginButton, isDisabled && { opacity: 0.5 }]}
@@ -132,110 +133,79 @@ export default function LoginScreen({ navigation }) {
             )}
           </TouchableOpacity>
 
-            <Text style={{margin:5}}>or</Text>
-            <TouchableOpacity style={styles.signupButton} onPress={() =>{navigation.navigate("Create Account")}}>
-              <Text style={{margin:"10",color:"green"}}>Create new Account</Text> 
-            </TouchableOpacity>
-         
-         
-          {/* <Either
-            width={width * 0.8}
-            height={height * 0.05}
-            style={styles.either}
-          /> */}
+          <Text style={{ margin: 5 }}>or</Text>
 
-          {/* <View style={styles.authContainer}>
-            <TouchableOpacity style={styles.authButton} onPress={() => {}}>
-              <FB width={40} height={40} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.authButton}
-              onPress={() => promptAsync()}
-            >
-              <ContinueG width={40} height={40} />
-            </TouchableOpacity>
-          </View> */}
+          <TouchableOpacity
+            style={styles.signupButton}
+            onPress={() => navigation.navigate("Create Account")}
+          >
+            <Text style={{ margin: 10, color: "grey", textDecorationLine: "underline" }}>
+              Create new Account
+            </Text>
+          </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation.navigate("ForgotPass")}>
             <Text style={styles.forgotPassword}>Forgot Password?</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </ScrollView>
+
+      {/* ✅ Feedback Modal component */}
+      <FeedbackModal
+        visible={modalData.visible}
+        title={modalData.title}
+        message={modalData.message}
+        onClose={() => setModalData({ ...modalData, visible: false })}
+      />
     </View>
   );
 }
 
 const styles = {
-  container: {
-    flex: 1,
-    backgroundColor: "#FEFEFE",
+  container: { flex: 1, backgroundColor: "#FEFEFE" },
+  scrollContainer: { flexGrow: 1, justifyContent: "center", alignItems: "center" },
+  signupButton: {
+    backgroundColor: null,
+    borderRadius: 100,
+    marginTop: 10,
+    paddingStart: 10,
+    paddingEnd: 10,
   },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },signupButton:{
-    backgroundColor:null,
-    borderRadius:100,
-    marginTop:10,
-    paddingStart:10,
-    paddingEnd:10
-  },
-  innerContainer: {
-    alignItems: "center",
-    width: "90%",
-  },
-  logoContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 50,
-  },
+  innerContainer: { alignItems: "center", width: "90%" },
+  logoContainer: { alignItems: "center", justifyContent: "center", marginBottom: 50 },
   tagline: { marginTop: -5 },
-  inputContainer: { width: "97%" },
-  label: {
-    fontFamily: "Poppins_500Medium",
-    color: "gray",
-    marginBottom: 5,
-  },
+  inputContainer: { width: "96%" },
+  label: { fontFamily: "Poppins_500Medium", color: "gray", marginBottom: 5 },
   input: {
-    backgroundColor: "#FDFDFD",
-    height: 50,
-    width: "100%",
-    paddingHorizontal: 16,
-    borderRadius: 30,
-    borderColor: "rgba(169, 169, 169, 0.5)",
-    borderWidth: 1.5,
-    fontFamily: "Poppins_400Regular",
-    fontSize: 16,
-    marginBottom: 15,
-  },
+  backgroundColor: "#FFFFFF", // pure white
+  height: 50,
+  width: "100%",
+  paddingHorizontal: 16,
+  borderRadius: 30,
+  borderColor: "rgba(169, 169, 169, 0.5)",
+  borderWidth: 1.5,
+  fontFamily: "Poppins_400Regular",
+  fontSize: 16,
+  marginBottom: 15,
+},
   loginButton: {
     backgroundColor: "#FA812F",
     borderRadius: 30,
     height: 50,
     justifyContent: "center",
     alignItems: "center",
-    width: "97%",
+    width: "96%",
     marginBottom: 20,
   },
   loginText: {
-    fontSize: 18,
+    fontSize: 17,
     fontFamily: "Poppins_500Medium",
     color: "white",
   },
-
-  either: { marginVertical: 15 },
-  authContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 20,
-    marginTop: 20,
-  },
-  authButton: { alignItems: "center" },
   forgotPassword: {
     fontFamily: "Poppins_500Medium",
     color: "#FA812F",
-    fontSize: 12,
+    fontSize: 11,
     textAlign: "center",
     marginTop: 130,
     marginBottom: 20,

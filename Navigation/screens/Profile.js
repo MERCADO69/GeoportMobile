@@ -1,5 +1,4 @@
-import React from "react";
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,16 +9,18 @@ import {
   RefreshControl,
   Alert,
   Image,
-  Button,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
+import VerifiedModal from "../modals/VerifiedModal";
 import GetUserData from "../../Functions/getUserData";
 import { auth } from "../../firebaseConfig";
-import {FETCH_USER_DATA} from "@env";
+import { FETCH_USER_DATA } from "@env";
 import reverseLocation from "../../Functions/reverseLocation";
 import useLiveLocation from "../../Functions/getCurrentLocation";
 import FetchReportedReports from "../../Functions/fetchReportedReports";
-import {AuthenticatedgetRequest} from "../../Functions/get"
+import { AuthenticatedgetRequest } from "../../Functions/get";
+
 export default function Morescreen({ navigation }) {
   const user = auth.currentUser;
   const [data, setUserData] = useState({});
@@ -29,16 +30,17 @@ export default function Morescreen({ navigation }) {
   const [reportTotal, setReportTotal] = useState(0);
   const [solvedTotal, setSolvedTotal] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [showVerifiedModal, setShowVerifiedModal] = useState(false); // modal state
 
   useEffect(() => {
     if (data.status) {
-      if ((data.status === "verified")) {
+      if (data.status === "verified") {
         setStatus("Verified Resident");
       } else {
         setStatus("Unverified Resident");
       }
     }
-  },[]);
+  }, [data]);
 
   useEffect(() => {
     async function FetchAllData() {
@@ -52,25 +54,23 @@ export default function Morescreen({ navigation }) {
   }, []);
 
   async function fetchedData() {
-                 let user = auth.currentUser;
-                    if (!user) {
-                        throw error("User not logged in");
-                    }
-                    let id = user.uid;
-                    let params = `${FETCH_USER_DATA}?id=${id}`
-                    const {error,message,responseData} = await AuthenticatedgetRequest(params);
-                    if(!error){
-                      console.log("User data fetched successfully:", responseData);
-                          setUserData(responseData.data);
-                    }else{
-                        throw new Error(message);
-                    }
+    let user = auth.currentUser;
+    if (!user) throw new Error("User not logged in");
+
+    let id = user.uid;
+    let params = `${FETCH_USER_DATA}?id=${id}`;
+    const { error, message, responseData } = await AuthenticatedgetRequest(params);
+
+    if (!error) {
+      console.log("User data fetched successfully:", responseData);
+      setUserData(responseData.data);
+    } else {
+      throw new Error(message);
+    }
   }
 
   async function reverse() {
     if (location) {
-      console.log("Location fetched:", location);
-
       let latitude = location.latitude;
       let longitude = location.longitude;
       const location_data = await reverseLocation(latitude, longitude);
@@ -84,9 +84,7 @@ export default function Morescreen({ navigation }) {
       let data = result.data?.data || {};
       const total = Object.keys(data).length;
       setReportTotal(total);
-      const solvedReports = Object.values(data).filter(
-        (report) => report.status === "Solved"
-      );
+      const solvedReports = Object.values(data).filter((r) => r.status === "Solved");
       setSolvedTotal(solvedReports.length);
     }
   }
@@ -110,20 +108,15 @@ export default function Morescreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <View style={styles.header}>
           <View style={styles.profileContainer}>
             {data.image ? (
               <Image
-                source={{ uri: data.image || 'https://res.cloudinary.com/douasd2ik/image/upload/v1751812905/Untitled_design_1_kjn1dn.png' }}
+                source={{ uri: data.image }}
                 style={styles.profileImage}
                 resizeMode="cover"
-                onError={(e) =>
-                  console.log("Image Load Error:", e.nativeEvent.error)
-                }
               />
             ) : (
               <Image
@@ -136,62 +129,40 @@ export default function Morescreen({ navigation }) {
             )}
           </View>
 
-          <Text style={styles.Username}>{data.name || "Loading ..."}</Text>
-          <Text style={[styles.Usergmail]}>{data.email || "Loading ..."}</Text>
+          <Text style={styles.Username}>{data.name || "Loading..."}</Text>
+          <Text style={styles.Usergmail}>{data.email || "Loading ..."}</Text>
           <View style={styles.locationContainer}>
             <Ionicons name="location-sharp" size={20} color="gray" />
-            <Text style={styles.locationText}>
-              {address.location || "Loading"}
-            </Text>
+            <Text style={styles.locationText}>{address.location || "Loading"}</Text>
           </View>
         </View>
 
         <View style={styles.parentCard}>
-          {/* Total Reports Card */}
           <TouchableOpacity style={[styles.card, styles.cardOrange]}>
             <View style={styles.cardContent}>
-              <Ionicons
-                name="bar-chart"
-                size={24}
-                color="#D35400"
-                style={styles.icon}
-              />
-              <Text style={[styles.number, styles.orangeText]}>
-                {reportTotal}
-              </Text>
+              <Ionicons name="bar-chart" size={24} color="#D35400" style={styles.icon} />
+              <Text style={[styles.number, styles.orangeText]}>{reportTotal}</Text>
             </View>
-            <Text style={[styles.cardTitle, styles.orangeText]}>
-              Total Reports
-            </Text>
+            <Text style={[styles.cardTitle, styles.orangeText]}>Total Reports</Text>
           </TouchableOpacity>
 
-          {/* Total Resolved Card */}
           <TouchableOpacity style={[styles.card, styles.cardGreen]}>
             <View style={styles.cardContent}>
-              <Ionicons
-                name="calendar"
-                size={24}
-                color="#34A853"
-                style={styles.icon}
-              />
-              <Text style={[styles.number, styles.greenText]}>
-                {solvedTotal}
-              </Text>
+              <Ionicons name="calendar" size={24} color="#34A853" style={styles.icon} />
+              <Text style={[styles.number, styles.greenText]}>{solvedTotal}</Text>
             </View>
-            <Text style={[styles.cardTitle, styles.greenText]}>
-              Total Resolved
-            </Text>
+            <Text style={[styles.cardTitle, styles.greenText]}>Total Resolved</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Verified Resident Card */}
+        {/* Verified Card */}
         <TouchableOpacity
           style={styles.verifiedCard}
           onPress={() => {
             if (status === "Unverified Resident") {
               navigation.navigate("VerifyAccount");
             } else {
-              Alert.alert("Verified Resident", "You are a verified resident!");
+              setShowVerifiedModal(true);
             }
           }}
         >
@@ -225,7 +196,6 @@ export default function Morescreen({ navigation }) {
         </TouchableOpacity>
 
         <View style={styles.menuContainer}>
-          {/* Member Since */}
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuItemContent}>
               <Ionicons name="calendar-outline" size={24} color="#FA812F" />
@@ -238,29 +208,17 @@ export default function Morescreen({ navigation }) {
             </View>
           </TouchableOpacity>
 
-          {/* Notifications */}
-          <TouchableOpacity
-  style={styles.menuItem}
-  onPress={() => navigation.navigate("More")}
->
-  <View style={styles.menuItemContent}>
-    <Ionicons
-      name="notifications-outline"
-      size={24}
-      color="#FA812F"
-    />
-    <View style={styles.menuTextContainer}>
-      <Text style={styles.menuTitle}>Notifications</Text>
-      <Text style={styles.menuSubtitle}>Manage Alerts</Text>
-    </View>
-  </View>
-</TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate("More")}>
+            <View style={styles.menuItemContent}>
+              <Ionicons name="notifications-outline" size={24} color="#FA812F" />
+              <View style={styles.menuTextContainer}>
+                <Text style={styles.menuTitle}>Notifications</Text>
+                <Text style={styles.menuSubtitle}>Manage Alerts</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
 
-          {/* Settings */}
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => handleSettingsButton()}
-          >
+          <TouchableOpacity style={styles.menuItem} onPress={handleSettingsButton}>
             <View style={styles.menuItemContent}>
               <Ionicons name="settings-outline" size={24} color="#FA812F" />
               <View style={styles.menuTextContainer}>
@@ -271,6 +229,13 @@ export default function Morescreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* ✅ Verified Modal */}
+      <VerifiedModal
+        isVisible={showVerifiedModal}
+        status={status}
+        onClose={() => setShowVerifiedModal(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -360,13 +325,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#FEFEFE",
     padding: 20,
     borderRadius: 10,
-    marginHorizontal: 20,
     marginTop: 15,
-    shadowColor: "#000",
-    elevation: 2,
+    marginHorizontal: 25,
     borderWidth: 1,
     borderColor: "#E8E8E8",
-    marginHorizontal: 25,
+    shadowColor: "#000",
+    elevation: 2,
   },
   verifiedContent: {
     flexDirection: "row",
@@ -404,8 +368,8 @@ const styles = StyleSheet.create({
   menuSubtitle: {
     fontSize: 13,
     color: "#666666",
-    marginTop: -1.5,
     fontFamily: "Poppins_400Regular",
+    marginTop: -1.5,
   },
   Usergmail: {
     fontFamily: "Poppins_400Regular",
@@ -414,9 +378,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   profileImage: {
-    width: 100, // Required width
-    height: 100, // Required height
-    borderRadius: 50, // Optional: Makes it circular
-    backgroundColor: "#e0e0e0", // Placeholder if image fails to load
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#e0e0e0",
   },
 });

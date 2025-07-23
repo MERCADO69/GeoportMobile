@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   buttonContent: {
     flexDirection: "row",
     alignItems: "center",
-    paddingLeft: 55,
+    paddingLeft: 65,
   },
   submitText: {
     fontSize: 9,

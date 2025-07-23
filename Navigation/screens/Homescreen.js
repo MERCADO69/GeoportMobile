@@ -140,7 +140,13 @@ export default function Homescreen() {
         <View style={styles.topBox} />
 
         <SafeAreaView>
-          <Text style={[styles.Welcomeuser]}>Welcome back {data.name}!</Text>
+          <Text
+    numberOfLines={1}
+    ellipsizeMode="tail"
+    style={styles.Welcomeuser}
+  >
+    Welcome back {data.name}!
+  </Text>
           <Text style={[styles.Welcomelocation]}>
             {location?.latitude + " " + location?.longitude}
           </Text>
@@ -410,7 +416,7 @@ const styles = StyleSheet.create({
   buttonContent: {
     flexDirection: "row",
     alignItems: "center",
-    paddingLeft: 57,
+    paddingLeft: 55,
   },
   submitText: {
     fontSize: 9,
@@ -453,15 +459,16 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_600SemiBold",
     fontSize: 15,
     position: "absolute",
-    marginTop: -175,
+    marginTop: -170,
     marginLeft: 25,
     color: "#fff",
   },
+
   locationIcon: {
-    marginTop: 10,
+    marginTop: 12,
     position: "absolute",
-    marginTop: -155,
-    marginLeft: 20,
+    marginTop: -148,
+    marginLeft: 22,
   },
   cardNewTypeContent: {
     width: "100%",
@@ -512,7 +519,7 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_400Regular",
     fontSize: 13,
     position: "absolute",
-    marginTop: -155,
+    marginTop: -148,
     marginLeft: 40,
     color: "#fff",
   },
@@ -521,7 +528,7 @@ const styles = StyleSheet.create({
   },
   norecent: {
     fontFamily: "Poppins_400Regular",
-    paddingLeft: 24,
+    paddingLeft: 11,
     marginStart: 15,
     fontSize: 14,
     color: "#555",

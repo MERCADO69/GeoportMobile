@@ -104,7 +104,6 @@ export default function Homescreen() {
     const reportDate = new Date(dateString + "Z");
     const currentDate = new Date();
 
-    // Convert both to UTC time
     const timeDifference = currentDate.getTime() - reportDate.getTime();
 
     const seconds = Math.floor(timeDifference / 1000);
@@ -153,9 +152,7 @@ export default function Homescreen() {
         </SafeAreaView>
 
 
-        {/* Parent Card Container */}
         <View style={styles.parentCard}>
-  {/* Total Reports Card */}
   <TouchableOpacity 
     style={[styles.card, styles.cardOrange]}
     onPress={() => navigation.navigate("History", { filter: "All" })}
@@ -234,7 +231,7 @@ export default function Homescreen() {
           {total && Object.keys(listofReports).length > 0 ? (
             <>
               {Object.values(listofReports)
-                .slice(0, 2) // Show only 2 reports
+                .slice(0, 2)
                 .map((report, index) => {
                   return (
                     <TouchableOpacity
@@ -281,7 +278,6 @@ export default function Homescreen() {
                   );
                 })}
               
-              {/* See More button that navigates to History */}
               {Object.keys(listofReports).length > 2 && (
                 <TouchableOpacity 
                   style={styles.seeMoreButton}
@@ -308,8 +304,8 @@ const styles = StyleSheet.create({
   },
   historyIconContainer: {
     position: "absolute",
-    top: 10, // Adjust as needed for vertical placement
-    left: 20, // Adjust as needed for horizontal placement
+    top: 10, 
+    left: 20,
     zIndex: 15,
   },
   iconContainer: {

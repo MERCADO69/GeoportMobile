@@ -1,3 +1,12 @@
+
+import { Alert } from "react-native";
+if (typeof ErrorUtils !== "undefined" && ErrorUtils.setGlobalHandler) {
+  ErrorUtils.setGlobalHandler((error, isFatal) => {
+    console.log("Global JS Error:", error, "Fatal:", isFatal);
+    Alert.alert("Error", error.message);
+  });
+}
+
 import * as React from "react";
 import { StyleSheet, Alert } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";

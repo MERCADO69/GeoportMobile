@@ -28,7 +28,7 @@
     "@react-navigation/stack": "6.3.15",
     "@rnmapbox/maps": "^10.1.39",
     "axios": "^1.8.2",
-    "expo": "52.0.47",
+    "expo": "~52.0.47",
     "expo-auth-session": "~6.0.3",
     "expo-av": "~15.0.2",
     "expo-camera": "~16.0.18",
@@ -40,7 +40,9 @@
     "expo-location": "~18.0.10",
     "expo-notifications": "~0.29.14",
     "expo-random": "14.0.1",
+    "expo-secure-store": "~14.0.1",
     "expo-status-bar": "~2.0.1",
+    "expo-web-browser": "~14.0.2",
     "firebase": "^11.9.1",
     "geolib": "^3.3.4",
     "js-sha1": "^0.7.0",
@@ -59,7 +61,6 @@
     "react-native-dotenv": "^3.4.11",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-get-random-values": "^1.11.0",
-    "react-native-image-picker": "^8.2.0",
     "react-native-maps": "1.18.0",
     "react-native-modal": "^14.0.0-rc.1",
     "react-native-reanimated": "~3.16.7",
@@ -72,9 +73,7 @@
     "react-native-web": "0.19.13",
     "react-native-webview": "13.12.5",
     "uuid": "^11.1.0",
-    "ws": "^8.18.1",
-    "expo-web-browser": "~14.0.2",
-    "expo-secure-store": "~14.0.1"
+    "ws": "^8.18.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

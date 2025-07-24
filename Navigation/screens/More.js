@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { View,Text,StyleSheet,SafeAreaView,TouchableOpacity,Switch,ScrollView,Alert} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  Switch,
+  ScrollView,
+  Alert
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import LogoutFunction from "../../Functions/logoutFunction"
+import LogoutFunction from "../../Functions/logoutFunction";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import LogoutModal from "../modals/LogoutModal";
 
 const SettingsScreen = ({ navigation }) => {
   const [settings, setSettings] = useState({
@@ -13,12 +22,12 @@ const SettingsScreen = ({ navigation }) => {
     cameraAccess: false,
   });
 
+  const [logoutVisible, setLogoutVisible] = useState(false);
 
   const handleLogout = async () => {
     await LogoutFunction();
     navigation.navigate("Login");
   };
-
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -34,15 +43,13 @@ const SettingsScreen = ({ navigation }) => {
     loadSettings();
   }, []);
 
-
-
   const toggleSwitch = (key, newValue) => {
     try {
-      const updatedSettings = { 
+      const updatedSettings = {
         ...settings,
         [key]: newValue,
       };
-      setSettings(updatedSettings);       
+      setSettings(updatedSettings);
       saveSettings(updatedSettings);
     } catch (error) {
       console.error('Error in toggling switch:', error);
@@ -53,22 +60,22 @@ const SettingsScreen = ({ navigation }) => {
     try {
       await AsyncStorage.setItem('userSettings', JSON.stringify(newSettings));
     } catch (e) {
-     Alert.alert("Something went wrong","Failed to save settings", e);
+      Alert.alert("Something went wrong", "Failed to save settings");
     }
   };
-
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          
+          <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerText}>Settings</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollView}>
         <View style={styles.container}>
+
           <Text style={styles.sectionTitle}>Rerouting</Text>
           <View style={styles.section}>
             <View style={styles.settingItem}>
@@ -102,6 +109,7 @@ const SettingsScreen = ({ navigation }) => {
                 <Ionicons name="chevron-forward" size={20} color="#CCC" />
               </TouchableOpacity>
             </View>
+
             <View style={styles.settingItem}>
               <View style={styles.settingInfo}>
                 <Ionicons name="mail-outline" size={24} color="#FF7F00" />
@@ -114,6 +122,7 @@ const SettingsScreen = ({ navigation }) => {
                 <Ionicons name="chevron-forward" size={20} color="#CCC" />
               </TouchableOpacity>
             </View>
+
             <View style={styles.settingItem}>
               <View style={styles.settingInfo}>
                 <Ionicons name="call-outline" size={24} color="#FF7F00" />
@@ -128,13 +137,8 @@ const SettingsScreen = ({ navigation }) => {
             </View>
           </View>
 
-
-          {/* Preferences Section */}
           <Text style={styles.sectionTitle}>Preferences</Text>
           <View style={styles.section}>
-            <View style={styles.settingItem}> 
-            </View>
-
             <View style={styles.settingItem}>
               <View style={styles.settingInfo}>
                 <Ionicons name="notifications-outline" size={24} color="#FF7F00" />
@@ -149,7 +153,6 @@ const SettingsScreen = ({ navigation }) => {
             </View>
           </View>
 
-          {/* App Settings Section */}
           <Text style={styles.sectionTitle}>App Settings</Text>
           <View style={styles.section}>
             <View style={styles.settingItem}>
@@ -185,7 +188,6 @@ const SettingsScreen = ({ navigation }) => {
             </View>
           </View>
 
-          {/* Support and About Section */}
           <Text style={styles.sectionTitle}>Support and About</Text>
           <View style={styles.section}>
             <View style={styles.settingItem}>
@@ -215,11 +217,19 @@ const SettingsScreen = ({ navigation }) => {
             </View>
           </View>
 
-          {/* Log Out Button */}
-          <TouchableOpacity style={styles.logoutButton}  onPress={async () => handleLogout()}>
+          <TouchableOpacity style={styles.logoutButton} onPress={() => setLogoutVisible(true)}>
             <Ionicons name="log-out-outline" size={27} color="#FF4444" />
             <Text style={styles.logoutText}>Log Out</Text>
           </TouchableOpacity>
+
+          <LogoutModal
+            visible={logoutVisible}
+            onCancel={() => setLogoutVisible(false)}
+            onConfirm={async () => {
+              setLogoutVisible(false);
+              await handleLogout();
+            }}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -242,16 +252,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     zIndex: 10,
   },
+  backButton: {
+    padding: 4,
+  },
   headerText: {
     fontSize: 20,
     marginLeft: 16,
     fontFamily: 'Poppins_600SemiBold',
   },
   scrollView: {
-    paddingBottom: 20,
+    paddingBottom: 30,
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
     paddingTop: 16,
   },
   sectionTitle: {
@@ -312,4 +325,3 @@ const styles = StyleSheet.create({
 });
 
 export default SettingsScreen;
-

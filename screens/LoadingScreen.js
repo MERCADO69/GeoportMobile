@@ -1,30 +1,42 @@
 import React, { useEffect } from "react";
 import { View, Text, StyleSheet,Image } from "react-native";
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
-import {  Poppins_700Bold } from "@expo-google-fonts/poppins";
 import { useNavigation } from "@react-navigation/native";
 import { auth } from "../firebaseConfig";
 import { ActivityIndicator } from "react-native";
 import Logo from "../assets/geoport_splash_bg_removed.png"
+import { useFonts } from "expo-font";
+import { Poppins_700Bold } from "@expo-google-fonts/poppins";
+
 
 export default function LoadingScreen() {
   const navigation = useNavigation();
+  
+  const [fontsLoaded] = useFonts({
+  Poppins_700Bold,
+});
 
-  useEffect(() => {
-    setTimeout(()=>{
-      checkIsAuthenticated()
-    },4000)
-  }, []);
+if (!fontsLoaded) {
+  return null; 
+}
+
+ useEffect(() => {
+  const timer = setTimeout(() => {
+    checkIsAuthenticated();
+  }, 4000);
+
+  return () => clearTimeout(timer);
+}, []);
+
 
   const checkIsAuthenticated = () =>{
-    console.log('Runnning check')
+   try{
       const isAuthenticated = auth.currentUser
       if(isAuthenticated){
-        console.log('Authenticated')
         navigation.navigate("homepage");
       }else {
-        console.log('unAuthenticated')
           navigation.navigate("Login");
+        }}catch(error){
+          console.error(error);
         }
   }
 

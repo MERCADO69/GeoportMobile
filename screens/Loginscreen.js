@@ -10,20 +10,23 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
+import { useFonts, Poppins_500Medium, Poppins_400Regular } from "@expo-google-fonts/poppins";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import loginFunction from "../Functions/loginFunction";
 import Mylogo from "../Images/Geo.svg";
 import Tagline from "../Images/Sibya.svg";
-import FeedbackModal from "../Navigation/modals/FeedbackModal"; // ✅ Import Modal
-import * as WebBrowser from "expo-web-browser";
+import FeedbackModal from "../Navigation/modals/FeedbackModal";
 
-WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen({ navigation }) {
   const { width, height } = Dimensions.get("window");
   const insets = useSafeAreaInsets();
+  const [fontsLoaded] = useFonts({ Poppins_500Medium,Poppins_400Regular,});
+  if (!fontsLoaded) {
+    return null;
+  }
   const { register, handleSubmit, setValue, watch, reset } = useForm({
     mode: "onChange",
   });
@@ -37,7 +40,6 @@ export default function LoginScreen({ navigation }) {
   const password = watch("password", "");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Feedback modal state
   const [modalData, setModalData] = useState({
     title: "",
     message: "",
@@ -47,12 +49,10 @@ export default function LoginScreen({ navigation }) {
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isDisabled = !isValidEmail(email) || password.length < 6 || loading;
 
-  // ✅ Updated handleLogin function
   const handleLogin = async (data) => {
     try {
       setLoading(true);
       const tryToLogin = await loginFunction(data.email, data.password);
-
       if (tryToLogin && tryToLogin.email) {
         reset();
         navigation.navigate("homepage");
@@ -150,7 +150,6 @@ export default function LoginScreen({ navigation }) {
         </SafeAreaView>
       </ScrollView>
 
-      {/* ✅ Feedback Modal component */}
       <FeedbackModal
         visible={modalData.visible}
         title={modalData.title}
@@ -177,7 +176,7 @@ const styles = {
   inputContainer: { width: "96%" },
   label: { fontFamily: "Poppins_500Medium", color: "gray", marginBottom: 5 },
   input: {
-  backgroundColor: "#FFFFFF", // pure white
+  backgroundColor: "#FFFFFF", 
   height: 50,
   width: "100%",
   paddingHorizontal: 16,

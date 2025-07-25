@@ -1,5 +1,5 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-  <item android:drawable="@color/splashscreen_background"/>
+  <item android:drawable="@color/geoport_splash_bg_removed"/>
   <item>
     <bitmap android:gravity="center" android:src="@drawable/geoport_splash_bg_removed"/>
   </item>

@@ -1,9 +1,20 @@
 
 import { Alert } from "react-native";
+import { LogBox } from 'react-native';
+
+LogBox.ignoreAllLogs(false);
+
 if (typeof ErrorUtils !== "undefined" && ErrorUtils.setGlobalHandler) {
   ErrorUtils.setGlobalHandler((error, isFatal) => {
     console.log("Global JS Error:", error, "Fatal:", isFatal);
-    Alert.alert("Error", error.message);
+    try {
+      Alert.alert(
+        isFatal ? "Fatal Error" : "Error",
+        error.message + "\n\n" + error.stack
+      );
+    } catch (e) {
+      console.log("Failed to display alert:", e);
+    }
   });
 }
 

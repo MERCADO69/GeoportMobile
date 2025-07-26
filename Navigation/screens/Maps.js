@@ -38,6 +38,7 @@ export default function MapsScreen() {
   const [isReroutingEnabled, setIsReroutingEnabled] = useState(false);
   const [isLocationAvailable, setIsLocationAvailable] = useState(false);
   const [loading, setLoading] = useState(false);
+  const modalShownRef = useRef(false);
   const loadSettings = async () => {
     try {
       const savedSmartRerouting = await AsyncStorage.getItem("userSettings");
@@ -176,9 +177,7 @@ export default function MapsScreen() {
     const dStart = geolibGetDistance(segmentStart, repairPoint);
     const dEnd = geolibGetDistance(segmentEnd, repairPoint);
     const dMid = geolibGetDistance(midPoint, repairPoint);
-    console.log("🛠 Checking repair point:", repairPoint);
-    console.log("  ↳ Distances → Start:", dStart, "End:", dEnd, "Mid:", dMid);
-  });
+    });
 
   return repairedRoad.some((repairPoint) => {
     const dStart = geolibGetDistance(segmentStart, repairPoint);
@@ -231,18 +230,17 @@ export default function MapsScreen() {
         latitude: parseFloat(report.latitude),
         longitude: parseFloat(report.longitude),
       }));
-    console.log("Coordinates array:", coordinates);
-    console.log("Raw reportData:", reportData);
 
     return coordinates;
   }
 
   function handleCloseModal() {
     setShowModal(false);
+      modalShownRef.current = false;
   }
 
   async function handleOpenModal() {
-    loadSettings();
+   loadSettings();
     if (!isReroutingEnabled) {
       Alert.alert(
         "Smart Rerouting is disabled",
@@ -258,12 +256,13 @@ export default function MapsScreen() {
       );
       return;
     }
-
-    if (!isSmartTraveling) {
+    if (!isSmartTraveling  && !modalShownRef.current) {
+       modalShownRef.current = true;
       setIsSmartTraveling(true);
       setShowModal(true);
     } else {
       setIsSmartTraveling(false);
+       modalShownRef.current = false;
       setSelectedLocation(null);
       setRoute([]);
     }
@@ -279,7 +278,8 @@ export default function MapsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {ModalList.routingPromptModal(showModal, handleCloseModal)}
+   {showModal && ModalList.routingPromptModal(showModal, handleCloseModal)}
+
       <View style={styles.legendContainer}>
         <View style={styles.legendItem}>
           <View

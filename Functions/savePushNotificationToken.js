@@ -8,7 +8,6 @@ export default async function applyForPushNotification() {
   try {
     const user = auth.currentUser;
     if (!user) {
-      console.log('User not authenticated');
       return;
     }
 
@@ -16,7 +15,6 @@ export default async function applyForPushNotification() {
     const authToken = await user.getIdToken(); 
 
     if (!Device.isDevice) {
-      console.log('Must use physical device');
       return;
     }
 
@@ -45,9 +43,8 @@ export default async function applyForPushNotification() {
       throw new Error('Failed to save push notification token');
     }
 
-    console.log('Push notification token saved successfully:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error saving push token:', error.message);
+     throw new error
   }
 }

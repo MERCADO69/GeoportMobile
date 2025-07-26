@@ -11,7 +11,6 @@ export default async function FetchReportedReports() {
   const token = await user.getIdToken();
 
   if (!id || !token) {
-    console.log("id and token null");
     return true;
   }
 

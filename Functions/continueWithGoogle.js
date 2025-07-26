@@ -32,8 +32,6 @@ export default function useGoogleAuth() {
 
   useEffect(() => {
     const handleAuthSuccess = async () => {
-      console.log('Using redirect URI:', redirectUri);
-      console.log('Client id ',clientId)
       if (response?.type === 'success' && response.authentication?.accessToken) {
         try {
           const profile = await fetchUserInfo(response.authentication.accessToken);

@@ -3,7 +3,6 @@ import { VALIDATE_IMAGE_ENDPOINT,SERVER_URL } from '@env'
 
 export default async function ValidateReport(reportImage) {
     try {
-        console.log('Validating report...');
         const url = `${SERVER_URL}${VALIDATE_IMAGE_ENDPOINT}`;
         const formData = new FormData();
         formData.append("image", {

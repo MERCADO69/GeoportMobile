@@ -97,7 +97,6 @@ export default function IdentityVerification() {
   const validateCapturedID = async () => {
     try {
       setLoading(true);
-      console.log(capturedID);
       const validation = await ValidateId(capturedImage);
 
       if (validation.success) {

@@ -11,9 +11,7 @@ import {
   Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 import VerifiedModal from "../modals/VerifiedModal";
-import GetUserData from "../../Functions/getUserData";
 import { auth } from "../../firebaseConfig";
 import { FETCH_USER_DATA } from "@env";
 import reverseLocation from "../../Functions/reverseLocation";
@@ -30,7 +28,7 @@ export default function Morescreen({ navigation }) {
   const [reportTotal, setReportTotal] = useState(0);
   const [solvedTotal, setSolvedTotal] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  const [showVerifiedModal, setShowVerifiedModal] = useState(false); // modal state
+  const [showVerifiedModal, setShowVerifiedModal] = useState(false); 
 
   useEffect(() => {
     if (data.status) {
@@ -62,7 +60,6 @@ export default function Morescreen({ navigation }) {
     const { error, message, responseData } = await AuthenticatedgetRequest(params);
 
     if (!error) {
-      console.log("User data fetched successfully:", responseData);
       setUserData(responseData.data);
     } else {
       throw new Error(message);
@@ -202,7 +199,7 @@ export default function Morescreen({ navigation }) {
               <View style={styles.menuTextContainer}>
                 <Text style={styles.menuTitle}>Member Since</Text>
                 <Text style={styles.menuSubtitle}>
-                  {user.metadata.creationTime || "Not yet member"}
+                 {user?.metadata?.creationTime || "Not yet member"}
                 </Text>
               </View>
             </View>
@@ -230,7 +227,6 @@ export default function Morescreen({ navigation }) {
         </View>
       </ScrollView>
 
-      {/* ✅ Verified Modal */}
       <VerifiedModal
         isVisible={showVerifiedModal}
         status={status}

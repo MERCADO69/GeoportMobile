@@ -11,7 +11,7 @@ import Homescreen from './screens/Homescreen';
 import Camera from './screens/Camera';
 import Maps from './screens/Maps';
 import Profile from './screens/Profile';
-import More from './screens/More';
+import SettingsScreen from './screens/More';
 
 const homeName = 'Home';
 const cameraName = 'Camera';
@@ -81,7 +81,7 @@ export default function Maincontainer() {
             <Tab.Screen name={cameraName} component={Camera} options={{ headerShown: false }} />
             <Tab.Screen name={mapsName} component={Maps} options={{ headerShown: false }} />
             <Tab.Screen name={profilename} component={Profile} options={{ headerShown: false }} />
-            <Tab.Screen name={MoreName} component={More} options={{ headerShown: false }} />
+            <Tab.Screen name={MoreName} component={SettingsScreen} options={{ headerShown: false }} />
         </Tab.Navigator>
 
 

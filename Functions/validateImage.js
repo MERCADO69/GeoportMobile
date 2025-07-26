@@ -51,7 +51,6 @@ export default async function ValidateId(imageUri) {
       };
     }
   } catch (error) {
-    console.log('valdiate image error is running')
     return {
       success: false,
       error: error.response?.data?.message || "Validation failed",

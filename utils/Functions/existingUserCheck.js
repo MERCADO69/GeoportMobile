@@ -17,7 +17,6 @@ export async function register(email, password) {
         "Email Verification",
         "A verification link has been sent to your email. Please verify before continuing."
       );
-      console.log("User registered:", user.email);
       return { success: true, verified: true };  
     }
     return { success: false, verified: false };

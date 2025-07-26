@@ -5,20 +5,20 @@
     "owner": "mart_dev",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/geoport_icon.png",
+    "icon": "./assets/geoport_splash_bg_removed.png",
     "scheme": "geoportmalaybalay",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/geoport_splash_bg_removed.png",
       "resizeMode": "contain",
-      "backgroundColor": "#fa760f"
+      "backgroundColor": "#FF8B00"
     },
     "android": {
       "package": "com.anonymous.GeoportMalaybalay",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/geoport_splash_bg_removed.png",
-        "backgroundColor": "#fa760f"
+        "backgroundColor": "#FF8B00"
       },
       "permissions": [
         "CAMERA",

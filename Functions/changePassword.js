@@ -4,7 +4,6 @@ import {CHANGE_PASSWORD_SENDPIN,CHANGE_PASSWORD_VERIFY_PIN,CHANGE_PASSWORD} from
 export default class ChangePassword{
         async changePassSendpin(email){
                 try{
-                  console.log('trying to send pin',email)
                     const isPinSend = await api.post(CHANGE_PASSWORD_SENDPIN,{email})
 
                     if (isPinSend.status >= 200 && isPinSend.status < 300) {
@@ -24,7 +23,6 @@ export default class ChangePassword{
                 const isPinVerified = await api.post(CHANGE_PASSWORD_VERIFY_PIN,data)
 
                 if (isPinVerified.status >= 200 && isPinVerified.status < 300) {
-                  console.log('success & verified')
                     return true
                   } else {
                     console.error('Error verifying pin:', isPinVerified.status);
@@ -38,7 +36,6 @@ export default class ChangePassword{
 
         async changePassword(new_password,email){
             try{
-              console.log('changing password')
               let data = {new_password,email}
                 const isPasswordChanged = await api.post(CHANGE_PASSWORD,data)
 

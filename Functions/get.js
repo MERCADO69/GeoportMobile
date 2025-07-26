@@ -4,7 +4,6 @@ import NAuth from "../api/noauth/api"
 
 export async function AuthenticatedgetRequest(params){
   try {
-    console.log('parameter is ',params)
     const response = await wAuth.get(params,{});
     const isSuccess = response.status >= 200 && response.status < 300;
     if(isSuccess) return {error: false,message: response.data?.message || '',  responseData: response.data || null, }

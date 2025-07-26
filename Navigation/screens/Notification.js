@@ -71,11 +71,6 @@ const NotificationsScreen = ({ navigation }) => {
     },
   ];
 
-  const handleDelete = (id) => {
-    // Implement delete functionality
-    console.log('Delete notification:', id);
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>

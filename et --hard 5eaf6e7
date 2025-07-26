@@ -1,0 +1,63 @@
+[33mae1d7b7[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mUI-branch[m[33m, [m[1;31morigin/UI-branch[m[33m)[m fix native modules
+[33m5eaf6e7[m fix native modules
+[33m062cc42[m fix native modukes
+[33m4615902[m add configs in android manifest
+[33m58ce852[m add configs in android manifest
+[33m5eaa666[m WIP: Local changes to Homescreen.js
+[33m3bf2e7b[m WIP: Local changes to Homescreen.js
+[33m313046a[m new modal
+[33m6319841[m a little adjustment
+[33m43ee17c[m a little adjustment
+[33macace20[m a little adjustment
+[33m4a0e094[m new modal for lgout button
+[33me6daab6[m Update More.js Design
+[33me5d2f90[m Update Homescreen.js Design
+[33m97118e5[m Update CreateAccount.js Design
+[33mc9c2e0e[m Update Homescreen.js
+[33m07b24ed[m New Modal For Verified
+[33m9d34ce8[m Update Profile.js
+[33ma9e5f19[m Update Homescreen.js
+[33m69cb98b[m fix user fetch reported reports. exclude False reports
+[33m0425e30[m upload fixed ui
+[33m2416aa2[m upload fixed ui
+[33m008b658[m upload fixed ui
+[33m739f321[m removed unwanted folders
+[33mdfc7595[m added fixed functinos
+[33mce5f8a0[m edit port
+[33m805efb2[m edit port
+[33m007bd0b[m add server url
+[33m93f29da[m add signup and fix major bugs and issues. unta walay nay bug!  katulgon nako litse
+[33m6caeca5[m fix working call from admin to app
+[33m6840752[m added installed libraries including the mmapbox map and livekit library. Also fixed the rerouting unreliable route
+[33m8457476[m transfer to expo dev
+[33m3671afd[m added new page for call
+[33m1b4b5f0[m move api calls/process to backend for more security. Also fixed the rerouting route- it became slighter accurate(to be improved
+[33m999c3e6[m push updates
+[33m69c68b3[m upload updated files
+[33m48945d3[m added working functions
+[33m4267237[m added forgot password function
+[33m008b119[m working notification
+[33m942e4b7[m upload working location,notification
+[33m3ab878e[m functional change profiledata and onrefresh
+[33m37edfe6[m update reroouting
+[33m0cd0b2f[m added routing and rerouting functionalities. including navigation to settings. and also logout functionality
+[33m63daea1[m Added working routing function
+[33m45bb71f[m fix working id and face verification
+[33mad79133[m face detection and face recognition working
+[33m5257f44[m Add warning modals, total and solved reports functions
+[33me8c4db1[m added homepage functions  and also can fetch most of the data
+[33mf0e3d95[m add action for homescreen quick action, homescreen fetch current location and user name
+[33ma5be280[m Can feth reports and display on the map
+[33mb46deab[m Can now fetch user data and display
+[33m2da6fa7[m Upload Working Camera w/ server  validation Also integrated the maps
+[33m63655b9[m dle jud ga function ang navigation
+[33m2c5639d[m remove dark mode
+[33m422861b[m pushing new function on the riderect page
+[33m281a9cd[m push with coffee
+[33ma7ea0eb[m updated History Screen
+[33m9e3b33c[m File Config dle mo function and Stack Navigator
+[33m99fa085[m new files
+[33m0a5818b[m third push today
+[33mefe00de[m commiting new updated files
+[33m7727733[m pushing the initial files
+[33m89e6151[m[33m ([m[1;31morigin/Main[m[33m, [m[1;31morigin/Integration[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mMain[m[33m)[m Initial commit

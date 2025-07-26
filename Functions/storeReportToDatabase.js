@@ -15,7 +15,6 @@ export default async function StoreReportToDatabase(
   let user = auth.currentUser;
 
   if (!user) {
-    console.log("current user is not authenticated");
     return {
       success: false,
       message: "User not authenticated.",
@@ -60,7 +59,6 @@ export default async function StoreReportToDatabase(
     });
 
     if (!response || !response.data) {
-      console.log(response.message);
 
       const removeImage = await deleteFromCloudinary(imageurl);
       if (!removeImage) {

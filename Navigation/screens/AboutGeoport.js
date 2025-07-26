@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView,} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
-
+import AboutDevelopersComponent from "../components/about"
 const AboutGeoportscreen = ({ navigation }) => {
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -116,6 +116,7 @@ const AboutGeoportscreen = ({ navigation }) => {
             </Text>
               </View>
                </View>
+              <AboutDevelopersComponent/>
         </View>
       </ScrollView>
     </SafeAreaView>

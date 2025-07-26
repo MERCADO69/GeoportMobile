@@ -7,7 +7,6 @@ export default async function submitGeneratedRoomId() {
   try {
     let user = auth.currentUser;
     if (!user) {
-      console.log("user not authenticated");
       return;
     }
     let id = user.uid;

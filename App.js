@@ -1,25 +1,6 @@
 
-import { Alert } from "react-native";
-import { LogBox } from 'react-native';
-
-LogBox.ignoreAllLogs(false);
-
-if (typeof ErrorUtils !== "undefined" && ErrorUtils.setGlobalHandler) {
-  ErrorUtils.setGlobalHandler((error, isFatal) => {
-    console.log("Global JS Error:", error, "Fatal:", isFatal);
-    try {
-      Alert.alert(
-        isFatal ? "Fatal Error" : "Error",
-        error.message + "\n\n" + error.stack
-      );
-    } catch (e) {
-      console.log("Failed to display alert:", e);
-    }
-  });
-}
-
-import * as React from "react";
 import { StyleSheet, Alert } from "react-native";
+import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import * as Notifications from "expo-notifications";
@@ -30,7 +11,6 @@ import { useEffect } from "react";
 // Screens
 import CallLobby from "./screens/callLobby";
 import LoginScreen from "./screens/Loginscreen";
-import Forgetpass from "./screens/Forgetpass";
 import OnCallPage from "./screens/onCallLobby";
 import OnVideoCallPage from "./screens/onVideoCallLobby";
 import ForgotPasswordScreen from "./screens/Forgetpass";
@@ -48,6 +28,15 @@ import UpdateInformationScreen from "./Navigation/screens/UpdateInfo";
 import AccountSetup from "./screens/CreateAccount"
 import { navigationRef, navigate } from "./navigationRef";
 import EmailVerificationCheck from "./screens/EmailVerification"
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs(['Warning: ...']); 
+LogBox.ignoreAllLogs();
+
+ErrorUtils.setGlobalHandler((error, isFatal) => {
+  console.log('Global JS Error:', error, 'Fatal:', isFatal);
+});
+
 
 const Stack = createStackNavigator();
 
@@ -58,9 +47,8 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
-
+ registerGlobals();
 function App() {
-  registerGlobals();
   useEffect(() => {
     (async () => {
       const { status } = await Notifications.getPermissionsAsync();
@@ -188,7 +176,6 @@ function App() {
           component={Maincontainer}
           options={{ headerShown: false }}
         />
-        <Stack.Screen name="ForgetPass" component={Forgetpass} />
         <Stack.Screen name="VerifyAccount" component={MobileNumberInput} />
         <Stack.Screen
           name="AboutGeoport"

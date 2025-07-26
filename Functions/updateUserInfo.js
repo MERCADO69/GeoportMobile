@@ -6,7 +6,6 @@ export default async function updateUserInfo(name, capturedImage) {
   const user = auth.currentUser;
 
   if (!user) {
-    console.log("Current user is not authenticated");
     return { success: false, message: "User not authenticated." };
   }
   const token = await user.getIdToken();
@@ -23,7 +22,6 @@ export default async function updateUserInfo(name, capturedImage) {
  
   try {
     const url = `${SERVER_URL}${UPDATE_USER_INFO}/${id}`;
-    console.log("URL:", url); 
     const response = await axios.post(url, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -37,6 +35,6 @@ export default async function updateUserInfo(name, capturedImage) {
       return { success: false, message: response.data.message };
     }
   } catch (error) {
-    console.log("Update user info error:", error.message);
+   throw new error
   }
 }

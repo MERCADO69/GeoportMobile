@@ -37,15 +37,11 @@ export default async function ValidateFace(capturedID, profileImage) {
 
     if (Array.isArray(response.data.result)) {
       response.data.result.forEach((res, index) => {
-        console.log(`Result ${index + 1}:`, JSON.stringify(res, null, 2));
     
         if (Array.isArray(res.face_matches)) {
-          console.log(`Face Matches ${index + 1}:`, JSON.stringify(res.face_matches, null, 2));
-        } else {
-          console.log(`Face Matches ${index + 1} is not an array`, res.face_matches);
-        }
-        console.log(`Source Image Face ${index + 1}:`, JSON.stringify(res.source_image_face, null, 2));
-      });
+           } else {
+           }
+          });
     }
     const faceMatches = response.data?.result?.[0]?.face_matches || [];
     const similarity = faceMatches.length > 0 ? faceMatches[0].similarity : null;

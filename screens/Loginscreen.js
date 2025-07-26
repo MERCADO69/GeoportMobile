@@ -14,6 +14,8 @@ import { useFonts, Poppins_500Medium, Poppins_400Regular } from "@expo-google-fo
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 import loginFunction from "../Functions/loginFunction";
 import Mylogo from "../Images/Geo.svg";
 import Tagline from "../Images/Sibya.svg";
@@ -21,15 +23,32 @@ import FeedbackModal from "../Navigation/modals/FeedbackModal";
 
 
 export default function LoginScreen({ navigation }) {
+  const [fontsLoaded] = useFonts({ Poppins_500Medium,Poppins_400Regular,});
   const { width, height } = Dimensions.get("window");
   const insets = useSafeAreaInsets();
-  const [fontsLoaded] = useFonts({ Poppins_500Medium,Poppins_400Regular,});
-  if (!fontsLoaded) {
-    return null;
-  }
+   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, setValue, watch, reset } = useForm({
     mode: "onChange",
   });
+
+  useFocusEffect(
+  useCallback(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      const shouldReset = navigation.getState().routes.find(
+        route => route.name === "Login"
+      )?.params?.resetForm;
+
+      if (shouldReset) {
+        reset(); 
+        setLoading(false);
+        navigation.setParams({ resetForm: false });
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation])
+);
+
 
   useEffect(() => {
     register("email");
@@ -38,7 +57,7 @@ export default function LoginScreen({ navigation }) {
 
   const email = watch("email", "");
   const password = watch("password", "");
-  const [loading, setLoading] = useState(false);
+ 
 
   const [modalData, setModalData] = useState({
     title: "",
@@ -49,31 +68,41 @@ export default function LoginScreen({ navigation }) {
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isDisabled = !isValidEmail(email) || password.length < 6 || loading;
 
-  const handleLogin = async (data) => {
-    try {
-      setLoading(true);
-      const tryToLogin = await loginFunction(data.email, data.password);
-      if (tryToLogin && tryToLogin.email) {
-        reset();
-        navigation.navigate("homepage");
-      } else {
-        setModalData({
-          title: "Login Failed",
-          message: "Invalid login credentials.",
-          visible: true,
-        });
-      }
-    } catch (error) {
-      setModalData({
-        title: "Something went wrong",
-        message: error.message || "Unexpected error occurred.",
-        visible: true,
-      });
-    } finally {
-      setLoading(false);
+ const handleLogin = async ({ email, password }) => {
+  setLoading(true);
+  try {
+    const result = await loginFunction(email, password);
+    if (result?.email) {
+      reset();
+      navigation.navigate("homepage");
+    } else {
+      showError("Login Failed", "Invalid login credentials.");
     }
-  };
+  } catch (err) {
+    showError("Unexpected Error", err.message || "Something went wrong.");
+  } finally {
+    setLoading(false);
+  }
+};
 
+const showError = (title, message) => {
+  setModalData({ title, message, visible: true });
+};
+
+   if (!fontsLoaded) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "white", 
+        }}
+      >
+        <ActivityIndicator size="large" color="#FA812F" />
+      </View>
+    );
+  }
   return (
     <View
       style={[
@@ -106,17 +135,21 @@ export default function LoginScreen({ navigation }) {
               placeholderTextColor="#A9A9A9"
               autoCapitalize="none"
               autoCorrect={false}
-              onChangeText={(text) => setValue("email", text)}
+              autoFocus
+              returnKeyType="next"
+              onChangeText={(text) => setValue("email", text, { shouldValidate: true })}
             />
 
             <Text style={styles.label}>Password</Text>
             <TextInput
               style={styles.input}
               secureTextEntry
+              textContentType="password"
               placeholder="Password (Min. 6 characters)"
               placeholderTextColor="#A9A9A9"
               autoCapitalize="none"
               autoCorrect={false}
+              returnKeyType="next"
               onChangeText={(text) => setValue("password", text)}
             />
           </View>

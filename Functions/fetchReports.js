@@ -19,7 +19,6 @@ export default async function fetchReports(setReportData) {
       socket = new WebSocket(url);
 
       socket.onopen = () => {
-        console.log("WebSocket Connected!");
       };
 
       socket.onmessage = (event) => {
@@ -36,7 +35,6 @@ export default async function fetchReports(setReportData) {
       };
 
       socket.onclose = () => {
-        console.log("WebSocket Disconnected! Reconnecting...");
         setTimeout(() => fetchReports(setReportData), 5000);
       };
     }

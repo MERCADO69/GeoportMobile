@@ -30,7 +30,6 @@ export default async function deleteFromCloudinary(imageUrl) {
     });
 
     if (response.data.result === "ok") {
-      console.log("✅ Image deleted successfully.");
       return { status: true, message: "Image deleted successfully." };
     } else {
       console.error("❌ Failed to delete image:", response.data);

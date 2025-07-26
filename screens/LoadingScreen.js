@@ -10,22 +10,28 @@ import { Poppins_700Bold } from "@expo-google-fonts/poppins";
 
 export default function LoadingScreen() {
   const navigation = useNavigation();
-  
   const [fontsLoaded] = useFonts({
-  Poppins_700Bold,
-});
+    Poppins_700Bold,
+  });
 
-if (!fontsLoaded) {
-  return null; 
-}
+  
 
- useEffect(() => {
+useEffect(() => {
+  if (!fontsLoaded) return;
+
   const timer = setTimeout(() => {
-    checkIsAuthenticated();
+    try {
+      checkIsAuthenticated();
+    } catch (err) {
+      console.error("Auth check failed:", err);
+    }
   }, 4000);
 
-  return () => clearTimeout(timer);
-}, []);
+  return () => {
+    clearTimeout(timer);
+  };
+}, [fontsLoaded]);
+
 
 
   const checkIsAuthenticated = () =>{

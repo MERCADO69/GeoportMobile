@@ -48,7 +48,6 @@ const UpdateInformationScreen = ({ navigation }) => {
   const handleFetchData = async () =>{
     const data = await GetUserData();
     if(!data){
-      console.log('No data found')
       return;
     }
     setUserData(data.data);
@@ -100,8 +99,9 @@ const UpdateInformationScreen = ({ navigation }) => {
         setCapturedImage('');
         setUserData(prev => ({ ...prev, image: user_data.image }));
       }}catch(error){
-        console.log('Error validating image:', error);
-        Alert.alert('Error','Failed to validate image. Please try again.')}
+         Alert.alert('Error','Failed to validate image. Please try again.')
+         throw new error
+       }
     finally{
       setLoading(false);
     }

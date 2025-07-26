@@ -27,18 +27,15 @@ export default function  NewForgotPasswordScreen({ navigation }){
   const onSubmit = async (data) => {
     Alert.alert('running','sending new password')
     if (data.newPassword !== data.confirmPassword) {
-      console.log('running error 1')
       Alert.alert("Error", "Passwords do not match.");
       return;
     }
    
-    console.log('running 2')
       try{  
         let new_password = data.newPassword;
         let change_pass = new ChangePassword()
         const isChanged = await change_pass.changePassword(new_password,email)
         if(!isChanged){
-          console.log('running error 2')
           Alert.alert('Something went wrong','Cannot change password')
           return
         }

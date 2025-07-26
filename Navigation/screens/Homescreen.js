@@ -54,8 +54,7 @@ export default function Homescreen() {
                     let params = `${FETCH_USER_DATA}?id=${id}`
                     const {error,message,responseData} = await AuthenticatedgetRequest(params);
                     if(!error){
-                          console.log("User data fetched successfully:", responseData);
-                          setUserData(responseData.data);
+                           setUserData(responseData.data);
                     }else{
                         throw new Error(message);
                     }
@@ -90,12 +89,12 @@ export default function Homescreen() {
         const hoursDifference = Math.floor(timeDifference / (1000 * 60 * 60));
         TotalReports(totalReports);
         if (daysDifference != 0) {
-          setLastReportedDate("Last " + daysDifference + " ago");
+          setLastReportedDate("Last " + daysDifference + " days ago");
         } else {
           setLastReportedDate("Last " + hoursDifference + " hours ago");
         }
       } else {
-        console.log("No reports found.");
+    
       }
     }
   }

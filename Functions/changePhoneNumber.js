@@ -19,7 +19,6 @@ export default class changeNumber{
 
     async handleSendpin(){    
         try{
-            console.log('trying to send pin')
             const {id,token} = await this.credentials();
             const url = `${SERVER_URL}${CHANGE_PHONE_SEND_PIN}/${id}`;
             const response = await axios.post(url,{},{
@@ -43,7 +42,6 @@ export default class changeNumber{
 
         async handleVerifyPin(inputted_pin){
                 try{
-                    console.log('trying to verify pin ',inputted_pin)
                     const {id,token} = await this.credentials();
                     const url = `${SERVER_URL}${CHANGE_PHONE_PIN_VERIFY}/${id}`;
                     const response = await axios.post(url,{inputted_pin},{

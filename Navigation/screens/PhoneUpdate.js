@@ -32,7 +32,6 @@ const UpdatePhoneScreen = ({ navigation }) => {
       try {
         const data = await GetUserData();
         if (data) setUserData(data);
-        console.log(data)
       } catch (error) {
         Alert.alert('Error', 'Failed to fetch user data.');
       }

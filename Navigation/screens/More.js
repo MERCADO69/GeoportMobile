@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { CommonActions } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -24,10 +25,15 @@ const SettingsScreen = ({ navigation }) => {
 
   const [logoutVisible, setLogoutVisible] = useState(false);
 
-  const handleLogout = async () => {
-    await LogoutFunction();
-    navigation.navigate("Login");
-  };
+const handleLogout = async () => {
+  await LogoutFunction();
+  navigation.dispatch(
+    CommonActions.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    })
+  );
+};
 
   useEffect(() => {
     const loadSettings = async () => {

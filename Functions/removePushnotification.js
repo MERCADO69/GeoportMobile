@@ -8,7 +8,6 @@ export default async function removePushNotification(){
     try{
         const user = auth.currentUser;
         if (!user) {
-            console.log('User not authenticated');
             return;
           }
       
@@ -30,6 +29,6 @@ export default async function removePushNotification(){
             return isSubmitSuccess.data
 
         }catch(error){
-        console.log('Error',error)
+         throw new error
     }
 }

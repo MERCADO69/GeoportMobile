@@ -4,7 +4,6 @@ import polyline from "@mapbox/polyline";
 import { auth } from "../firebaseConfig";
 
 export async function requestRoute(currentLocation, destinationLocation) {
-  console.log("requesting route");
   let location = storeCurrentLocation(currentLocation, destinationLocation);
   try {
     let user = auth.currentUser;

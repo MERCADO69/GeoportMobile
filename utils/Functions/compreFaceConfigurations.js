@@ -10,7 +10,6 @@ class CompreFaceServices{
 
 
     duplicateFaceChecker(metadata){
-        console.log('dnjwidbuiub')
         return metadata.faces.length === 1;
     }
     

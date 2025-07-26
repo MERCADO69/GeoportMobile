@@ -61,17 +61,17 @@ const PublishTracks = () => {
                         const audioTrack = await createLocalAudioTrack();
                         await room.localParticipant.publishTrack(audioTrack);
                     }
-                } catch (err) {
-                console.log("Error publishing audio track:", err);
-                }
+                } catch (error) {
+                throw error
+              }
             try{
                  const videoPublished = room.localParticipant.videoTracks.size > 0;
                   if (!videoPublished) {
                             const videoTrack = await createLocalVideoTrack();
                             await room.localParticipant.publishTrack(videoTrack);
                         }
-              } catch (err) {
-                console.log("Error publishing video track:", err);
+              } catch (error) {
+                throw new error
                 }
 
       } catch (err) {
@@ -91,8 +91,8 @@ const CallControls = ({ navigation }) => {
   const hangUp = async () => {
     try {
       await room.disconnect();
-    } catch (err) {
-      console.log("Error disconnecting room:", err);
+    } catch (error) {
+      throw new error
     }finally{
       navigation.navigate('homepage')
        Alert.alert(

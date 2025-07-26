@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigation } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -16,12 +17,12 @@ import {
 } from '@expo-google-fonts/poppins';
 
 const HelpSupportScreen = ({ navigation }) => {
+
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_600SemiBold,
   });
-
   const [expandedQuestion, setExpandedQuestion] = useState(null);
 
   if (!fontsLoaded) {
@@ -83,7 +84,7 @@ const HelpSupportScreen = ({ navigation }) => {
           </View>
         ))}
 
-        <TouchableOpacity style={styles.viewReportsButton}>
+        <TouchableOpacity style={styles.viewReportsButton} onPress={()=>navigation.navigate("History", { filter: "All" })}>
           <Text style={styles.viewReportsText}>View my reports</Text>
         </TouchableOpacity>
       </ScrollView>

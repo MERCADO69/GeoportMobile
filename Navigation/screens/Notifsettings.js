@@ -27,10 +27,9 @@ const NotificationSettingScreen = ({ navigation }) => {
         const storedSettings = await AsyncStorage.getItem('userSettings');
         if (storedSettings !== null) {
           setSettings(JSON.parse(storedSettings));
-          console.log('Loaded settings from AsyncStorage');
         }
       } catch (error) {
-        console.log('Error loading settings:', error);
+       throw new error
       }
     };
   
@@ -42,9 +41,8 @@ const NotificationSettingScreen = ({ navigation }) => {
     const saveSettings = async () => {
       try {
         await AsyncStorage.setItem('userSettings', JSON.stringify(settings));
-        console.log('Settings saved to AsyncStorage');
       } catch (error) {
-        console.log('Error saving settings:', error);
+        throw new error
       }
     };
   
@@ -71,9 +69,8 @@ const NotificationSettingScreen = ({ navigation }) => {
           Alert.alert('Failed to apply for notification')
           return
         }
-        console.log('success')
     }catch(error){
-      console.log('Something went wrong')
+      throw new error
     }
   }
 
@@ -85,9 +82,8 @@ const NotificationSettingScreen = ({ navigation }) => {
       if(!isRemoved){
         Alert.alert('Error',"Can't remove report")
       }
-      console.log('Successfully removed notification')
     }catch(error){
-      console.log('failed to remove')
+      throw new error
     }
   }
 

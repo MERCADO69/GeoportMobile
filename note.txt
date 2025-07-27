@@ -15,3 +15,8 @@
     - compreface
 * request limiter (backend)
     - fastapi limiter w/ redis
+
+
+# To generate cloudflare url 
+- cloudflared tunnel --url http://localhost:8000 --protocol http2
+
